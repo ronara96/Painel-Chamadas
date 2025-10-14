@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Painel de Chamadas Pop-up (v2)",
+  "version": "2.0",
+  "description": "Substitui o robo.py por um pop-up na extensão.",
+  "action": { 
+    "default_title": "Enviar Chamada",
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "scripting",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://187.1.57.8:8080/*",
+    "https://SUA_URL_PUBLICA_RAILWAY/*" 
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://187.1.57.8:8080/lista-atendimento*"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ]
+}

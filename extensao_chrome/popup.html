@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chamar Paciente</title>
+    <style>
+        body { width: 300px; padding: 10px; font-family: Arial, sans-serif; }
+        h4 { margin-top: 0; color: #007bff; }
+        .paciente-info { margin-bottom: 10px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; background-color: #f9f9f9; }
+        .paciente-nome { font-weight: bold; color: #333; }
+        .guiche-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        button {
+            width: 100%;
+            padding: 10px 5px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        button:hover { background-color: #1e7e34; }
+        .status-msg { margin-top: 10px; font-weight: bold; }
+        .status-ok { color: #28a745; }
+        .status-error { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <h4>Destino da Chamada</h4>
+    <div class="paciente-info">
+        Paciente: <span id="paciente-nome" class="paciente-nome">Carregando...</span>
+    </div>
+
+    <div class="guiche-grid">
+        <button id="btn-cons-1" data-destino="CONSULTÓRIO 1">CONS. 1</button>
+        <button id="btn-cons-2" data-destino="CONSULTÓRIO 2">CONS. 2</button>
+        <button id="btn-cons-3" data-destino="CONSULTÓRIO 3">CONS. 3</button>
+        <button id="btn-guiche-1" data-destino="GUICHÊ 1">GUICHÊ 1</button>
+        <button id="btn-guiche-2" data-destino="GUICHÊ 2">GUICHÊ 2</button>
+        <button id="btn-sala-v" data-destino="SALA DE VACINA">VACINA</button>
+    </div>
+    
+    <div id="status-message" class="status-msg"></div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
