@@ -7,20 +7,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* --- ESTILOS MODERNOS E ELEGANTES (ALTO CONTRASTE) --- */
+        /* --- ESTILOS ORIGINAIS (CLARO) --- */
         :root {
-            --cor-fundo: #1c1c1c; /* Fundo Escuro Moderno */
-            --cor-primaria: #007bff; /* Azul Vibrante (Chamada Principal) */
-            --cor-destaque: #28a745; /* Verde (Guichê) */
-            --cor-texto-claro: #f8f9fa;
-            --cor-sombra: 0 8px 20px rgba(0, 0, 0, 0.4);
-            --tempo-animacao: 0.8s;
+            --cor-azul-principal: #007bff;      /* Azul Vibrante (Fundo Chamada) */
+            --cor-verde-destaque: #28a745;      /* Verde Destaque (Guichê/Serviço) */
+            --cor-fundo-claro: #f8f9fa;         /* Fundo Geral */
+            --cor-texto-principal: #333;        /* Texto Escuro */
+            --cor-texto-claro: #fff;            /* Texto na Chamada Principal */
+            --cor-sombra: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --tempo-animacao: 0.5s;
         }
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background-color: var(--cor-fundo);
-            color: var(--cor-texto-claro);
+            background-color: var(--cor-fundo-claro);
+            color: var(--cor-texto-principal);
             margin: 0;
             padding: 20px;
             display: grid;
@@ -35,17 +36,18 @@
         .header {
             text-align: center;
             padding: 10px 0;
+            border-bottom: 2px solid #ccc;
         }
         .header h1 {
             font-size: 2.5vw;
             font-weight: 700;
-            color: var(--cor-texto-claro);
+            color: var(--cor-texto-principal);
             margin: 0;
         }
         #unidade-nome {
             font-size: 1.5vw;
             font-weight: 400;
-            color: #ccc;
+            color: var(--cor-azul-principal);
         }
 
         /* --- SEÇÃO DE CHAMADA PRINCIPAL (DESTAQUE) --- */
@@ -54,7 +56,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: var(--cor-primaria);
+            background: var(--cor-azul-principal);
             border-radius: 15px;
             box-shadow: var(--cor-sombra);
             padding: 40px;
@@ -77,21 +79,21 @@
         #chamada-principal-sala {
             font-size: 5vw;
             font-weight: 900;
-            color: var(--cor-destaque);
+            color: var(--cor-verde-destaque); /* Guichê em destaque verde */
             text-transform: uppercase;
             margin-bottom: 0.1em;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
         }
         
         #chamada-principal-paciente {
-            font-size: 12vw; /* Senha GIGANTE */
+            font-size: 8vw; /* Nome do Paciente */
             font-weight: 900;
             color: var(--cor-texto-claro);
             margin: 0;
-            line-height: 1;
+            line-height: 1.2;
         }
         #chamada-principal-paciente::before {
-            content: "SENHA: ";
+            content: "PACIENTE: ";
             font-size: 0.2em;
             font-weight: 400;
             display: block;
@@ -109,7 +111,7 @@
 
         /* --- SEÇÃO DE HISTÓRICO --- */
         .historico-container {
-            background: #2c2c2c;
+            background: #ffffff;
             border-radius: 15px;
             padding: 20px;
             box-shadow: var(--cor-sombra);
@@ -117,8 +119,8 @@
         .historico-container h2 {
             font-size: 1.8vw;
             font-weight: 700;
-            color: #aaa;
-            border-bottom: 2px solid #444;
+            color: var(--cor-texto-principal);
+            border-bottom: 2px solid #e0e0e0;
             padding-bottom: 10px;
             margin-top: 0;
         }
@@ -131,25 +133,25 @@
             justify-content: space-around;
         }
         .chamado-historico {
-            background: #3a3a3a;
+            background: #f1f1f1;
             border-radius: 8px;
             padding: 15px 25px;
             flex-grow: 1;
             text-align: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s;
         }
         .historico-sala {
             font-size: 1.8vw;
             font-weight: 700;
-            color: var(--cor-destaque);
+            color: var(--cor-verde-destaque);
             display: block;
             margin-bottom: 5px;
         }
         .historico-paciente {
             font-size: 3vw;
             font-weight: 900;
-            color: var(--cor-texto-claro);
+            color: var(--cor-texto-principal);
             display: block;
         }
         .lista-vazia {
@@ -186,6 +188,7 @@
         const API_URL_BASE = 'https://painel-chamadas.onrender.com'; 
         
         let ultimaChamadaRecebida = null;
+        let ultimaFalaLida = null; // Para controlar o áudio
 
         // 1. Extração do ID da Unidade da URL
         const urlPartes = window.location.pathname.split('/');
@@ -203,13 +206,44 @@
         const principalHora = document.getElementById('chamada-principal-hora');
         const listaHistorico = document.getElementById('lista-historico');
         
+        // --- FUNÇÃO DE ÁUDIO ---
+        function falarChamada(paciente, destino) {
+            if (!('speechSynthesis' in window)) {
+                console.warn("API de Síntese de Voz não suportada neste navegador.");
+                return;
+            }
+
+            // Frase de exemplo: "Maria Souza favor se dirigir ao consultorio 3 para a consulta"
+            const utterance = new SpeechSynthesisUtterance(`${paciente} favor se dirigir ao ${destino} para o atendimento.`);
+            
+            // Configurações (Voz masculina BR se disponível)
+            utterance.lang = 'pt-BR';
+            utterance.rate = 1.0; // Velocidade
+            utterance.pitch = 1.0; // Tonalidade
+            
+            // Tenta encontrar uma voz masculina (adaptável)
+            window.speechSynthesis.onvoiceschanged = () => {
+                const voices = window.speechSynthesis.getVoices();
+                // Tenta achar uma voz masculina em português (pode variar o nome)
+                let voz = voices.find(v => v.lang === 'pt-BR' && (v.name.includes('male') || v.name.includes('Google português do Brasil') || v.name.includes('Microsoft Daniel')));
+                
+                if (voz) {
+                    utterance.voice = voz;
+                } else {
+                    // Usa a primeira voz em português se não encontrar a masculina
+                    voz = voices.find(v => v.lang === 'pt-BR');
+                    if(voz) utterance.voice = voz;
+                }
+            };
+            
+            window.speechSynthesis.speak(utterance);
+        }
+
         // Função principal para buscar e atualizar o painel
         async function atualizarPainel() {
             try {
-                // A URL chamada é: https://painel-chamadas.onrender.com/historico/Aps_Centro_de_Saude_01
                 const response = await fetch(URL_HISTORICO);
                 
-                // Se o servidor estiver no ar, mas a rota retornar erro 404/500
                 if (!response.ok) {
                     throw new Error(`Erro HTTP: ${response.status}`);
                 }
@@ -217,7 +251,7 @@
                 const data = await response.json();
                 const chamadosAnteriores = data.historico || [];
                 
-                // Se o erro do cabeçalho estava aqui, ele é corrigido agora:
+                // Garante que o nome da unidade esteja correto após uma comunicação bem-sucedida
                 document.getElementById('unidade-nome').textContent = UNIDADE_ID.replace(/_/g, ' ');
 
                 if (chamadosAnteriores.length === 0) {
@@ -232,23 +266,33 @@
                 // --- 1. ATUALIZA CHAMADA PRINCIPAL ---
                 const chamadaAtual = chamadosAnteriores[0];
                 
-                // Prioriza o Guichê, se não existir, usa o Serviço
+                // Prioriza o Guichê (Consultório ou Serviço)
                 const localChamado = chamadaAtual.guiche || chamadaAtual.servico || 'Local Desconhecido';
+                const nomePaciente = chamadaAtual.paciente || chamadaAtual.senha || 'Paciente Não Identificado';
                 
                 principalSala.textContent = localChamado;
-                principalPaciente.textContent = chamadaAtual.senha || chamadaAtual.paciente || 'SN';
+                
+                // 🚨 LÓGICA CORRIGIDA: Prioriza o nome do paciente, que é o dado real enviado pela Extensão.
+                principalPaciente.textContent = nomePaciente; 
+                
                 principalHora.textContent = chamadaAtual.hora || '';
 
 
-                // --- 2. ANIMAÇÃO DE NOVA CHAMADA ---
-                const ID_CHAMADA_ATUAL = chamadaAtual.hora + chamadaAtual.senha + localChamado;
+                // --- 2. ANIMAÇÃO E ÁUDIO DE NOVA CHAMADA ---
+                const ID_CHAMADA_ATUAL = localChamado + nomePaciente + chamadaAtual.hora; 
                 
                 if (ID_CHAMADA_ATUAL !== ultimaChamadaRecebida) {
                     // Se for uma nova chamada, adiciona a animação
                     chamadaPrincipalBox.classList.add('animar');
                     ultimaChamadaRecebida = ID_CHAMADA_ATUAL;
 
-                    // Remove a animação após 6 segundos para não ser muito intrusiva
+                    // 🔉 Toca o áudio APENAS se a chamada for realmente nova
+                    if (ID_CHAMADA_ATUAL !== ultimaFalaLida) {
+                        falarChamada(nomePaciente, localChamado);
+                        ultimaFalaLida = ID_CHAMADA_ATUAL;
+                    }
+                    
+                    // Remove a animação após 6 segundos 
                     setTimeout(() => {
                         chamadaPrincipalBox.classList.remove('animar');
                     }, 6000); 
@@ -268,7 +312,7 @@
                         
                         li.innerHTML = `
                             <span class="historico-sala">${localHistorico.toUpperCase()}</span> 
-                            <span class="historico-paciente">${chamado.senha || 'SN'}</span>
+                            <span class="historico-paciente">${chamado.paciente || 'SN'}</span>
                         `;
                         listaHistorico.appendChild(li);
                     });
@@ -278,12 +322,12 @@
 
             } catch (e) {
                 console.error('Erro ao buscar dados da API (Verifique o Render):', e);
-                // 🚨 LINHA CRÍTICA 2: EXIBIÇÃO LIMPA DO ERRO NA ÁREA PRINCIPAL
+                // Exibição do erro na área de destaque
+                document.getElementById('unidade-nome').textContent = 'Erro de Comunicação - Tentando Reconectar...'; // Mantém o nome da unidade no cabeçalho
                 principalSala.textContent = `ERRO DE CONEXÃO`;
                 principalPaciente.textContent = `API OFFLINE`;
                 principalHora.textContent = '';
                 chamadaPrincipalBox.classList.remove('animar');
-                // NOTA: A linha que causava o problema no cabeçalho foi removida!
             }
         }
 
