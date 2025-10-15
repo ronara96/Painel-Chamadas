@@ -1,9 +1,7 @@
-# api.py - API PONTE FINAL E ESTÁVEL
+# api.py - API PONTE FINAL E ESTÁVEL (VERSÃO DE PRODUÇÃO RAILWAY)
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from datetime import datetime
-import os 
-import sys # Necessário se houver problemas de codificação no ambiente
 
 # --- Configurações ---
 app = Flask(__name__) 
@@ -13,10 +11,11 @@ CORS(app)
 historico_por_unidade = {}
 MAX_HISTORICO = 3 
 
-# --- ROTA DE DIAGNÓSTICO (/) ---
-# Se o servidor subir, esta rota deve retornar a mensagem simples.
+# --- ROTA DE DIAGNÓSTICO ---
+# Se o servidor subir, esta rota deve responder.
 @app.route('/', methods=['GET'])
 def home():
+    # Se você vir esta mensagem no navegador, o servidor Flask está online.
     return "API do Painel de Chamadas Rodando. Por favor, acesse /painel/<unidade_id>.", 200
 
 # --- Rota para SERVIR o Painel HTML (Recebe o ID da unidade na URL) ---
@@ -52,8 +51,4 @@ def retornar_historico(unidade_id):
     historico = historico_por_unidade.get(unidade_id, [])
     return jsonify({"historico": historico})
 
-# --- Bloco de Inicialização (Garante a execução no Railway) ---
-if __name__ == '__main__':
-    # O Railway usa a variável de ambiente 'PORT'
-    port = int(os.environ.get('PORT', 5000)) 
-    app.run(host='0.0.0.0', port=port, debug=False)
+# *** ATENÇÃO: O bloco de execução local (if __name__ == '__main__':) FOI REMOVIDO ***
