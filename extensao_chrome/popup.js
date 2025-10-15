@@ -1,7 +1,5 @@
-// popup.js
-
-// 🚨 IMPORTANTE: ATUALIZE COM SUA URL PÚBLICA DO RAILWAY
-const API_URL_BASE = 'https://SUA_URL_PUBLICA_RAILWAY';
+// popup.js - CÓDIGO FINAL E ESTÁVEL
+const API_URL_BASE = 'https://painel.up.railway.app'; 
 
 let dadosChamada = null;
 const statusMessage = document.getElementById('status-message');
@@ -12,12 +10,16 @@ chrome.runtime.sendMessage({ action: "obterDadosChamada" }, (response) => {
     if (response && response.dados) {
         dadosChamada = response.dados;
         pacienteNomeElement.textContent = dadosChamada.paciente;
+        statusMessage.textContent = "Selecione o destino acima para chamar.";
+        statusMessage.className = 'status-msg';
     } else {
-        pacienteNomeElement.textContent = "Erro: Sem dados da chamada. Feche e tente novamente.";
+        pacienteNomeElement.textContent = "Erro: Sem dados da chamada.";
+        statusMessage.textContent = "Por favor, clique no botão 'Chamar' na lista novamente.";
+        statusMessage.className = 'status-msg status-error';
     }
 });
 
-// Função para enviar os dados para a API Pública
+// Função principal para enviar os dados para a API Pública
 async function enviarChamada(destino) {
     if (!dadosChamada) {
         statusMessage.textContent = "Erro: Dados ausentes.";
@@ -27,15 +29,15 @@ async function enviarChamada(destino) {
 
     const { paciente, unidade_id, profissional } = dadosChamada;
     
-    // Payload final que será enviado
+    // PAYLOAD FINAL ENVIADO AO SERVIDOR (FORMATO JSON)
     const payload = {
         paciente: paciente,
         profissional: profissional || 'Não Informado',
-        guiche: destino, // Novo campo
-        senha: 'SN' // Mantido como padrão. Você pode implementar um contador se quiser.
+        guiche: destino, 
+        senha: 'SN' 
     };
     
-    // A rota é /nova-chamada/ID_DA_UNIDADE
+    // Monta a URL FINAL (Ex: https://painel.up.railway.app/nova-chamada/ID_DA_UNIDADE)
     const url = `${API_URL_BASE}/nova-chamada/${unidade_id}`;
 
     statusMessage.textContent = `Enviando chamado para ${destino}...`;
@@ -51,29 +53,51 @@ async function enviarChamada(destino) {
         });
 
         if (response.ok) {
-            statusMessage.textContent = `Chamado enviado com sucesso!`;
+            statusMessage.textContent = `Chamado enviado com sucesso para: ${destino}!`;
             statusMessage.className = 'status-msg status-ok';
             
-            // Fecha o pop-up automaticamente após 1.5 segundos
             setTimeout(() => {
                 window.close();
             }, 1500); 
 
         } else {
+            // Tenta ler a mensagem de erro detalhada do servidor para ajudar na depuração
             const erro = await response.json().catch(() => ({mensagem: response.statusText}));
-            statusMessage.textContent = `Erro do servidor: ${erro.mensagem || response.statusText}`;
+            statusMessage.textContent = `Erro do servidor (${response.status}): ${erro.mensagem || response.statusText}.`;
             statusMessage.className = 'status-msg status-error';
         }
     } catch (error) {
-        statusMessage.textContent = `Erro de rede: Verifique a URL: ${error.message}`;
+        statusMessage.textContent = `Erro de rede: ${error.message}. Verifique sua conexão ou se o Railway está online.`;
         statusMessage.className = 'status-msg status-error';
     }
 }
 
-// Adiciona listeners aos botões
-document.querySelectorAll('.guiche-grid button').forEach(button => {
-    button.addEventListener('click', () => {
-        const destino = button.getAttribute('data-destino');
-        enviarChamada(destino);
-    });
+// --- LISTENERS DE AÇÃO ---
+
+// 1. Botão Chamar Consultório
+document.getElementById('btn-chamar-consultorio').addEventListener('click', () => {
+    const inputConsultorio = document.getElementById('input-consultorio').value.trim();
+    
+    if (!inputConsultorio || isNaN(parseInt(inputConsultorio))) {
+        statusMessage.textContent = "Por favor, digite um NÚMERO válido para o Consultório.";
+        statusMessage.className = 'status-msg status-error';
+        return;
+    }
+    
+    const destinoFinal = `CONSULTÓRIO ${inputConsultorio}`;
+    enviarChamada(destinoFinal);
+});
+
+// 2. Botão Chamar Serviço
+document.getElementById('btn-chamar-servico').addEventListener('click', () => {
+    const selectServico = document.getElementById('select-servico');
+    const servicoSelecionado = selectServico.value;
+    
+    if (!servicoSelecionado) {
+        statusMessage.textContent = "Por favor, selecione um Serviço na lista.";
+        statusMessage.className = 'status-msg status-error';
+        return;
+    }
+    
+    enviarChamada(servicoSelecionado);
 });
