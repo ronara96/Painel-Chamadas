@@ -1,47 +1,162 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Chamar Paciente</title>
+    <meta charset="UTF-8"> <title>Chamar Paciente</title>
     <style>
-        body { width: 300px; padding: 10px; font-family: Arial, sans-serif; }
-        h4 { margin-top: 0; color: #007bff; }
-        .paciente-info { margin-bottom: 10px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; background-color: #f9f9f9; }
-        .paciente-nome { font-weight: bold; color: #333; }
-        .guiche-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        /* Estilos Base e Fonte */
+        body { 
+            width: 320px; 
+            padding: 15px; 
+            font-family: 'Montserrat', Arial, sans-serif; 
+            background-color: #f7f9fc;
+        }
+        h4 { 
+            margin-top: 0; 
+            color: #174776; /* Azul Escuro Elegante */
+            border-bottom: 2px solid #e0e0e0; 
+            padding-bottom: 8px; 
+            font-size: 1.1em; 
+            font-weight: 700;
+        }
+
+        /* Informação do Paciente */
+        .paciente-info { 
+            margin-bottom: 20px; 
+            padding: 12px; 
+            border-radius: 8px; 
+            background-color: #ffffff; 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #007bff;
+        }
+        .paciente-nome { 
+            font-weight: 700; 
+            color: #333; 
+            font-size: 1.2em; 
+            display: block;
+        }
+        .paciente-info span {
+            font-weight: 400;
+            color: #777;
+            font-size: 0.9em;
+        }
+        
+        /* Seções de Destino */
+        .guiche-section { 
+            margin-bottom: 20px; 
+            padding: 15px; 
+            border-radius: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        .guiche-section h5 { 
+            margin: 0 0 10px 0; 
+            color: #28a745; 
+            font-size: 0.9em; 
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        /* Inputs e Selects */
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+            margin-bottom: 8px;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus, select:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        
+        /* Botões */
         button {
             width: 100%;
-            padding: 10px 5px;
-            background-color: #28a745;
+            padding: 12px 5px;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, transform 0.1s;
+            text-transform: uppercase;
         }
-        button:hover { background-color: #1e7e34; }
-        .status-msg { margin-top: 10px; font-weight: bold; }
-        .status-ok { color: #28a745; }
-        .status-error { color: #dc3545; }
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        /* Estilos específicos */
+        #btn-chamar-consultorio { 
+            background-color: #007bff; /* Azul Primário */
+            width: 35%; /* Ajuste o tamanho */
+            margin-top: 0;
+        }
+        #btn-chamar-consultorio:hover { background-color: #0056b3; }
+        
+        #btn-chamar-servico { 
+            background-color: #28a745; /* Verde Destaque */
+            margin-top: 8px;
+        }
+        #btn-chamar-servico:hover { background-color: #1e7e34; }
+        
+        .consultorio-row {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+        .consultorio-row input {
+            flex-grow: 1;
+            margin-bottom: 0;
+        }
+        
+        /* Mensagem de Status */
+        .status-msg { 
+            margin-top: 20px; 
+            padding: 10px; 
+            text-align: center; 
+            font-weight: 600; 
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+        .status-ok { color: #1e7e34; background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .status-error { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
     <h4>Destino da Chamada</h4>
     <div class="paciente-info">
-        Paciente: <span id="paciente-nome" class="paciente-nome">Carregando...</span>
+        <span>Paciente:</span>
+        <span id="paciente-nome" class="paciente-nome">Carregando...</span>
     </div>
 
-    <div class="guiche-grid">
-        <button id="btn-cons-1" data-destino="CONSULTÓRIO 1">CONS. 1</button>
-        <button id="btn-cons-2" data-destino="CONSULTÓRIO 2">CONS. 2</button>
-        <button id="btn-cons-3" data-destino="CONSULTÓRIO 3">CONS. 3</button>
-        <button id="btn-guiche-1" data-destino="GUICHÊ 1">GUICHÊ 1</button>
-        <button id="btn-guiche-2" data-destino="GUICHÊ 2">GUICHÊ 2</button>
-        <button id="btn-sala-v" data-destino="SALA DE VACINA">VACINA</button>
+    <div class="guiche-section">
+        <h5>1. Consultório</h5>
+        <div class="consultorio-row">
+            <input type="text" id="input-consultorio" placeholder="Ex: 1, 2, 3">
+            <button id="btn-chamar-consultorio">Chamar</button>
+        </div>
     </div>
-    
-    <div id="status-message" class="status-msg"></div>
+
+    <div class="guiche-section">
+        <h5>2. Serviço</h5>
+        <select id="select-servico">
+            <option value="">-- Selecione o Serviço --</option>
+            <option value="ODONTOLOGIA">ODONTOLOGIA</option>
+            <option value="FARMÁCIA">FARMÁCIA</option>
+            <option value="VACINA">VACINA</option>
+            <option value="ENFERMAGEM">ENFERMAGEM</option>
+            <option value="TRIAGEM">TRIAGEM</option>
+            <option value="CURATIVOS">CURATIVOS</option>
+            <option value="EXAMES">EXAMES</option>
+        </select>
+        <button id="btn-chamar-servico">Chamar</button>
+    </div>
+
+    <div id="status-message" class="status-msg">Aguardando dados...</div>
 
     <script src="popup.js"></script>
 </body>
