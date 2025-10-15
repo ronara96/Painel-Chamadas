@@ -86,7 +86,7 @@
             transition: color 0.5s, font-size 0.5s; 
         }
         
-        /* 🚨 CLASSE PARA MODO IDLE (AGUARDANDO) */
+        /* 🚨 CLASSE PARA MODO IDLE (AGUARDANDO) - Deixa a mensagem compacta e branca */
         .idle-status-text {
             color: var(--cor-texto-claro) !important; 
             opacity: 0.9;
@@ -268,9 +268,12 @@
                 const chamadosAnteriores = data.historico || [];
                 
                 document.getElementById('unidade-nome').textContent = UNIDADE_ID.replace(/_/g, ' ');
-
+                
+                // 🚨 LINHA DE DEBUG: VERIFICA SE O DADO ESTÁ CHEGANDO!
+                console.log('API retornou chamados:', chamadosAnteriores.length);
+                
                 if (chamadosAnteriores.length === 0) {
-                    // 🚨 MODO IDLE ATIVADO: Mensagem única e compacta no local do Serviço/Consultório
+                    // MODO IDLE ATIVADO: Mensagem única e compacta no local do Serviço/Consultório
                     principalSala.textContent = 'AGUARDANDO PRÓXIMA CHAMADA'; 
                     principalPaciente.textContent = ''; // Campo paciente VAZIO
                     principalHora.textContent = '';
