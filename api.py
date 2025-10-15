@@ -11,32 +11,46 @@ CORS(app)
 
 # Diretório onde os arquivos de histórico serão salvos
 DATA_DIR = 'data'
-if not os.path.exists(DATA_DIR):
-    os.makedirs(DATA_DIR)
+# A função os.makedirs(DATA_DIR) é chamada na primeira execução se a pasta não existir
+# Mas para o Render, a pasta deve existir com o .gitkeep
+# if not os.path.exists(DATA_DIR):
+#     os.makedirs(DATA_DIR)
 
 MAX_HISTORICO = 3 
 
 # Função para obter o caminho do arquivo de histórico de uma unidade
 def get_file_path(unidade_id):
+    # Garante que o caminho completo esteja correto
     return os.path.join(DATA_DIR, f'{unidade_id}.json')
 
 # Função para carregar o histórico de uma unidade do arquivo
 def load_historico(unidade_id):
     filepath = get_file_path(unidade_id)
+    # 🚨 Linha de log para debugar se o arquivo é encontrado
+    print(f"DEBUG: Tentando carregar o arquivo: {filepath}") 
     if os.path.exists(filepath):
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except (json.JSONDecodeError, FileNotFoundError):
-            # Se o arquivo estiver corrompido ou vazio, retorna lista vazia
+                # Se o arquivo não estiver vazio
+                content = f.read()
+                if content:
+                    return json.loads(content)
+                return []
+        except Exception as e:
+            print(f"ERRO ao ler JSON de {filepath}: {e}")
             return []
     return []
 
 # Função para salvar o histórico de uma unidade no arquivo
 def save_historico(unidade_id, historico):
     filepath = get_file_path(unidade_id)
-    with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(historico, f, ensure_ascii=False, indent=4)
+    try:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(historico, f, ensure_ascii=False, indent=4)
+        print(f"DEBUG: Histórico de {unidade_id} salvo com sucesso em {filepath}")
+    except Exception as e:
+        print(f"ERRO FATAL ao salvar arquivo em {filepath}: {e}")
+
 
 # --- ROTAS DA API ---
 
