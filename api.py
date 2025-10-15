@@ -1,37 +1,30 @@
-# api.py - API AGORA PERSISTE DADOS EM ARQUIVOS JSON (CORREÇÃO DE MEMÓRIA DO RENDER)
+# api.py - VERSÃO FINAL COM PERSISTÊNCIA JSON E TRATAMENTO DE ERROS
+
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from datetime import datetime
 import json
 import os
 
-# --- Configurações --
+# --- Configurações ---
 app = Flask(__name__) 
 CORS(app) 
 
-# Diretório onde os arquivos de histórico serão salvos
-DATA_DIR = 'data'
-# A função os.makedirs(DATA_DIR) é chamada na primeira execução se a pasta não existir
-# Mas para o Render, a pasta deve existir com o .gitkeep
-# if not os.path.exists(DATA_DIR):
-#     os.makedirs(DATA_DIR)
-
+# Usa o caminho absoluto para o diretório de dados (mais seguro no Render)
+DATA_DIR = os.path.join(os.getcwd(), 'data')
 MAX_HISTORICO = 3 
 
 # Função para obter o caminho do arquivo de histórico de uma unidade
 def get_file_path(unidade_id):
-    # Garante que o caminho completo esteja correto
     return os.path.join(DATA_DIR, f'{unidade_id}.json')
 
 # Função para carregar o histórico de uma unidade do arquivo
 def load_historico(unidade_id):
     filepath = get_file_path(unidade_id)
-    # 🚨 Linha de log para debugar se o arquivo é encontrado
     print(f"DEBUG: Tentando carregar o arquivo: {filepath}") 
     if os.path.exists(filepath):
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
-                # Se o arquivo não estiver vazio
                 content = f.read()
                 if content:
                     return json.loads(content)
@@ -45,12 +38,14 @@ def load_historico(unidade_id):
 def save_historico(unidade_id, historico):
     filepath = get_file_path(unidade_id)
     try:
+        # Tenta salvar o arquivo
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(historico, f, ensure_ascii=False, indent=4)
-        print(f"DEBUG: Histórico de {unidade_id} salvo com sucesso em {filepath}")
+        print(f"DEBUG: Histórico de {unidade_id} SALVO com sucesso em {filepath}")
     except Exception as e:
-        print(f"ERRO FATAL ao salvar arquivo em {filepath}: {e}")
-
+        # 🚨 ESTA MENSAGEM IRÁ CONFIRMAR O ERRO DE PERMISSÃO NO RENDER
+        print(f"ERRO CRÍTICO: Falha ao SALVAR o histórico da unidade {unidade_id} no disco. O Render pode estar bloqueando a escrita. Erro: {e}")
+        # A API continuará rodando, mas o dado não será persistido.
 
 # --- ROTAS DA API ---
 
@@ -83,7 +78,7 @@ def receber_nova_chamada(unidade_id):
     historico.insert(0, dados_chamada)
     historico = historico[:MAX_HISTORICO] # Limita o histórico
     
-    # 4. Salva o histórico atualizado no arquivo
+    # 4. Salva o histórico atualizado no arquivo (Onde o erro de permissão pode ocorrer)
     save_historico(unidade_id, historico)
     
     print(f"Recebida nova chamada em UNIDADE: {unidade_id}. Histórico atual: {historico}")
@@ -96,8 +91,12 @@ def get_historico(unidade_id):
     # Simplesmente carrega e retorna o histórico do arquivo
     historico = load_historico(unidade_id)
     
-    # Se o histórico estiver vazio, a API retornará {"historico": []}, o que é esperado
     return jsonify({"historico": historico}), 200
 
 if __name__ == '__main__':
+    # Garante que o diretório exista antes de iniciar a aplicação localmente
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
+        print(f"Diretório de dados criado em: {DATA_DIR}")
+        
     app.run(debug=True)
