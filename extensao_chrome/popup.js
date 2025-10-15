@@ -61,7 +61,6 @@ async function enviarChamada(destino) {
             }, 1500); 
 
         } else {
-            // Tenta ler a mensagem de erro detalhada do servidor para ajudar na depuração
             const erro = await response.json().catch(() => ({mensagem: response.statusText}));
             statusMessage.textContent = `Erro do servidor (${response.status}): ${erro.mensagem || response.statusText}.`;
             statusMessage.className = 'status-msg status-error';
