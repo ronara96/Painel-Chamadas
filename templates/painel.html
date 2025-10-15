@@ -7,296 +7,263 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* Variáveis CSS baseadas no layout azul/verde */
+        /* --- ESTILOS MODERNOS E ELEGANTES (ALTO CONTRASTE) --- */
         :root {
-            --cor-azul-principal: #007bff; /* Azul Vibrante (Fundo Chamada) */
-            --cor-azul-escuro: #0056b3; 
-            --cor-verde-destaque: #28a745; /* Verde Destaque (Guichê) */
-            --cor-fundo-claro: #f8f9fa; /* Fundo Geral */
-            --cor-texto-principal: #333;
-            --cor-texto-claro: #fff;
-            --cor-sombra: 0 4px 12px rgba(0, 0, 0, 0.15);
-            --tempo-animacao: 0.5s;
+            --cor-fundo: #1c1c1c; /* Fundo Escuro Moderno */
+            --cor-primaria: #007bff; /* Azul Vibrante (Chamada Principal) */
+            --cor-destaque: #28a745; /* Verde (Guichê) */
+            --cor-texto-claro: #f8f9fa;
+            --cor-sombra: 0 8px 20px rgba(0, 0, 0, 0.4);
+            --tempo-animacao: 0.8s;
         }
 
         body {
             font-family: 'Montserrat', sans-serif;
-            background-color: var(--cor-fundo-claro);
-            color: var(--cor-texto-principal);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-        }
-
-        .container {
-            display: flex;
-            width: 95%; 
-            max-width: 1400px; 
-            margin-top: 20px;
-        }
-
-        .secao-principal {
-            flex: 2; /* Ocupa 2/3 da tela */
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-right: 20px;
-        }
-
-        .chamada-atual {
-            background-color: var(--cor-azul-principal);
+            background-color: var(--cor-fundo);
             color: var(--cor-texto-claro);
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: var(--cor-sombra);
+            margin: 0;
+            padding: 20px;
+            display: grid;
+            grid-template-rows: 15% 55% 30%; /* Título, Principal, Histórico */
+            height: 96vh;
+            gap: 20px;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        /* --- SEÇÃO DE TÍTULO --- */
+        .header {
             text-align: center;
-            min-height: 400px; 
+            padding: 10px 0;
+        }
+        .header h1 {
+            font-size: 2.5vw;
+            font-weight: 700;
+            color: var(--cor-texto-claro);
+            margin: 0;
+        }
+        #unidade-nome {
+            font-size: 1.5vw;
+            font-weight: 400;
+            color: #ccc;
+        }
+
+        /* --- SEÇÃO DE CHAMADA PRINCIPAL (DESTAQUE) --- */
+        .chamada-principal-container {
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            animation: fadeIn var(--tempo-animacao) ease-out;
-        }
-
-        .chamada-atual h2 {
-            font-size: 6vw; /* Senha grande e responsiva */
-            margin-bottom: 10px;
-            font-weight: 900;
-            letter-spacing: 5px;
-            animation: slideInTop var(--tempo-animacao) ease-out;
-        }
-
-        .chamada-atual p {
-            font-size: 3vw;
-            font-weight: 700;
-            margin-bottom: 30px;
-            animation: fadeIn var(--tempo-animacao) ease-out 0.2s;
-            animation-fill-mode: backwards;
-        }
-
-        .local-destino {
-            background-color: var(--cor-verde-destaque);
-            color: var(--cor-texto-claro);
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 4vw;
-            font-weight: 900;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            animation: slideInBottom var(--tempo-animacao) ease-out 0.4s;
-            animation-fill-mode: backwards;
-        }
-
-        /* Seção do Título */
-        .titulo-painel {
-            text-align: center;
-            padding: 15px 0;
-            background-color: #fff;
+            background: var(--cor-primaria);
             border-radius: 15px;
             box-shadow: var(--cor-sombra);
-        }
-
-        .titulo-painel h1 {
-            font-size: 2.5vw;
-            color: var(--cor-azul-principal);
-            margin: 0;
-            font-weight: 900;
+            padding: 40px;
+            text-align: center;
+            transition: background-color var(--tempo-animacao);
+            border: 5px solid transparent;
+            position: relative;
         }
         
-        /* Seção do Histórico */
-        .secao-historico {
-            flex: 1; /* Ocupa 1/3 da tela */
-            background-color: #fff;
-            padding: 20px;
+        /* Animação para a chamada principal (efeito de alerta) */
+        @keyframes pulse-border {
+            0% { border-color: rgba(255, 255, 255, 0.5); }
+            50% { border-color: rgba(255, 255, 255, 1); }
+            100% { border-color: rgba(255, 255, 255, 0.5); }
+        }
+        .animar {
+             animation: pulse-border 1.5s infinite alternate;
+        }
+
+        #chamada-principal-sala {
+            font-size: 5vw;
+            font-weight: 900;
+            color: var(--cor-destaque);
+            text-transform: uppercase;
+            margin-bottom: 0.1em;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        #chamada-principal-paciente {
+            font-size: 12vw; /* Senha GIGANTE */
+            font-weight: 900;
+            color: var(--cor-texto-claro);
+            margin: 0;
+            line-height: 1;
+        }
+        #chamada-principal-paciente::before {
+            content: "SENHA: ";
+            font-size: 0.2em;
+            font-weight: 400;
+            display: block;
+            opacity: 0.7;
+        }
+        
+        #chamada-principal-hora {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 1.5vw;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* --- SEÇÃO DE HISTÓRICO --- */
+        .historico-container {
+            background: #2c2c2c;
             border-radius: 15px;
+            padding: 20px;
             box-shadow: var(--cor-sombra);
         }
-
-        .secao-historico h3 {
-            font-size: 2vw;
-            color: var(--cor-texto-principal);
-            border-bottom: 3px solid var(--cor-azul-principal);
+        .historico-container h2 {
+            font-size: 1.8vw;
+            font-weight: 700;
+            color: #aaa;
+            border-bottom: 2px solid #444;
             padding-bottom: 10px;
             margin-top: 0;
-            font-weight: 700;
         }
-
-        #lista-historico {
+        .historico-lista {
             list-style: none;
             padding: 0;
             margin: 0;
+            display: flex;
+            gap: 20px;
+            justify-content: space-around;
         }
-
         .chamado-historico {
-            border: 2px solid #ccc;
+            background: #3a3a3a;
             border-radius: 8px;
-            margin-bottom: 15px;
-            padding: 15px;
-            background-color: #f2f2f2;
-            transition: all 0.3s ease;
-        }
-        
-        .chamado-historico:last-child {
-            margin-bottom: 0;
-        }
-
-        .historico-sala {
-            font-size: 1.5vw;
-            color: var(--cor-verde-destaque);
-            font-weight: 700;
-            display: block;
-        }
-
-        .historico-paciente {
-            font-size: 2.5vw; /* Foco no número/senha do chamado */
-            color: var(--cor-texto-principal);
-            font-weight: 900;
-            display: block;
-        }
-        
-        /* Animações */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideInTop {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        @keyframes slideInBottom {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        /* Estilo para quando a lista de histórico estiver vazia */
-        .lista-vazia {
-            font-style: italic;
-            color: #999;
+            padding: 15px 25px;
+            flex-grow: 1;
             text-align: center;
-            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
+        }
+        .historico-sala {
+            font-size: 1.8vw;
+            font-weight: 700;
+            color: var(--cor-destaque);
+            display: block;
+            margin-bottom: 5px;
+        }
+        .historico-paciente {
+            font-size: 3vw;
+            font-weight: 900;
+            color: var(--cor-texto-claro);
+            display: block;
+        }
+        .lista-vazia {
             font-size: 1.5vw;
+            color: #777;
+            text-align: center;
+            width: 100%;
+            padding: 20px;
         }
-
-        /* Estilo para o caso de o painel estar vazio (sem chamadas) */
-        .chamada-vazia h2 {
-            font-size: 4vw !important;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .chamada-vazia p {
-            font-size: 2vw !important;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        
-        .chamada-vazia .local-destino {
-             background-color: #555;
-        }
-
     </style>
 </head>
 <body>
-    <div class="container">
-        
-        <div class="secao-principal">
-            <div class="titulo-painel">
-                <h1 id="unidade-nome">PAINEL DE CHAMADAS | CARREGANDO UNIDADE...</h1>
-            </div>
 
-            <div id="chamada-atual" class="chamada-atual">
-                <p id="msg-aguardando">AGUARDANDO PRÓXIMA CHAMADA</p>
-                <h2 id="senha-atual" style="display: none;"></h2>
-                <p id="paciente-atual" style="display: none;"></p>
-                <div id="local-atual" class="local-destino" style="display: none;"></div>
-            </div>
-        </div>
+    <div class="header">
+        <h1>PAINEL DE ATENDIMENTO</h1>
+        <span id="unidade-nome">Carregando Unidade...</span>
+    </div>
 
-        <div class="secao-historico">
-            <h3>ÚLTIMOS CHAMADOS</h3>
-            <ul id="lista-historico">
-                <li class="lista-vazia">Aguardando primeira chamada...</li>
-            </ul>
-        </div>
+    <div class="chamada-principal-container" id="chamada-principal-box">
+        <span id="chamada-principal-sala">Aguardando Chamada</span>
+        <span id="chamada-principal-paciente">...</span>
+        <span id="chamada-principal-hora"></span>
+    </div>
+
+    <div class="historico-container">
+        <h2>Últimas Chamadas</h2>
+        <ul class="historico-lista" id="lista-historico">
+            <li class="lista-vazia">Aguardando dados da API...</li>
+        </ul>
     </div>
 
     <script>
-        // 🚨 CONFIGURAÇÃO FINAL! Sua URL pública do Railway:
-        const URL_API_BASE = 'https://painel.up.railway.app'; 
+        // 🚨 CORREÇÃO CRÍTICA: URL BASE DA API APONTANDO PARA O RENDER
+        const API_URL_BASE = 'https://painel-chamadas.onrender.com'; 
         
-        // Extrai o ID da unidade da URL do painel
-        function getUnidadeIDFromURL() {
-            const pathArray = window.location.pathname.split('/');
-            // Espera-se que a URL seja /painel/ID_DA_UNIDADE
-            // O ID é o último segmento
-            return pathArray.pop() || pathArray.pop() || 'UNIDADE_PADRAO'; 
-        }
+        let ultimaChamadaRecebida = null;
 
-        const UNIDADE_ID = getUnidadeIDFromURL();
-        const MAX_HISTORICO = 3;
+        // 1. Extração do ID da Unidade da URL
+        const urlPartes = window.location.pathname.split('/');
+        // Pega a última parte da URL (Ex: Aps_Centro_de_Saude_01)
+        const UNIDADE_ID = urlPartes[urlPartes.length - 1]; 
+        
+        // Exibe o nome da unidade no painel e configura a URL da API
+        document.getElementById('unidade-nome').textContent = UNIDADE_ID.replace(/_/g, ' ');
+        const URL_HISTORICO = `${API_URL_BASE}/historico/${UNIDADE_ID}`;
 
-        // Atualiza o título do painel
-        document.getElementById('unidade-nome').textContent = `PAINEL DE CHAMADAS | UNIDADE: ${UNIDADE_ID.replace(/_/g, ' ')}`;
-
-        // Função para atualizar o painel com os dados da API
+        // Referências do DOM
+        const chamadaPrincipalBox = document.getElementById('chamada-principal-box');
+        const principalSala = document.getElementById('chamada-principal-sala');
+        const principalPaciente = document.getElementById('chamada-principal-paciente');
+        const principalHora = document.getElementById('chamada-principal-hora');
+        const listaHistorico = document.getElementById('lista-historico');
+        
+        // Função principal para buscar e atualizar o painel
         async function atualizarPainel() {
-            const url = `${URL_API_BASE}/historico/${UNIDADE_ID}`;
-            
             try {
-                const response = await fetch(url);
-                const historico = await response.json();
-
-                if (!historico || historico.length === 0) {
-                    // Se não houver chamadas, exibe a mensagem de aguardando
-                    document.getElementById('chamada-atual').classList.add('chamada-vazia');
-                    document.getElementById('msg-aguardando').style.display = 'block';
-                    document.getElementById('senha-atual').style.display = 'none';
-                    document.getElementById('paciente-atual').style.display = 'none';
-                    document.getElementById('local-atual').style.display = 'none';
-                    
-                    document.getElementById('lista-historico').innerHTML = '<li class="lista-vazia">Nenhum chamado anterior.</li>';
+                const response = await fetch(URL_HISTORICO);
+                
+                // Se o servidor estiver no ar, mas a rota retornar erro 404/500
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const chamadosAnteriores = data.historico || [];
+                
+                if (chamadosAnteriores.length === 0) {
+                    principalSala.textContent = 'Aguardando Chamada';
+                    principalPaciente.textContent = '...';
+                    principalHora.textContent = '';
+                    chamadaPrincipalBox.classList.remove('animar');
+                    listaHistorico.innerHTML = '<li class="lista-vazia">Nenhum chamado anterior.</li>';
                     return;
                 }
 
-                document.getElementById('chamada-atual').classList.remove('chamada-vazia');
-                document.getElementById('msg-aguardando').style.display = 'none';
+                // --- 1. ATUALIZA CHAMADA PRINCIPAL ---
+                const chamadaAtual = chamadosAnteriores[0];
                 
-                // --- 1. Renderiza a Chamada Atual ---\
-                const chamadaAtual = historico[0];
-                const senha = chamadaAtual.senha || 'SN';
-                const paciente = chamadaAtual.paciente || 'Paciente';
-                const local = chamadaAtual.guiche || chamadaAtual.servico || 'Local Desconhecido';
+                // Prioriza o Guichê, se não existir, usa o Serviço
+                const localChamado = chamadaAtual.guiche || chamadaAtual.servico || 'Local Desconhecido';
                 
-                document.getElementById('senha-atual').textContent = senha;
-                document.getElementById('paciente-atual').textContent = paciente;
-                document.getElementById('local-atual').textContent = local;
-
-                document.getElementById('senha-atual').style.display = 'block';
-                document.getElementById('paciente-atual').style.display = 'block';
-                document.getElementById('local-atual').style.display = 'block';
+                principalSala.textContent = localChamado;
+                principalPaciente.textContent = chamadaAtual.senha || chamadaAtual.paciente || 'SN';
+                principalHora.textContent = chamadaAtual.hora || '';
 
 
-                // --- 2. Renderiza o Histórico ---\
-                const listaHistorico = document.getElementById('lista-historico');
-                listaHistorico.innerHTML = ''; 
+                // --- 2. ANIMAÇÃO DE NOVA CHAMADA ---
+                const ID_CHAMADA_ATUAL = chamadaAtual.hora + chamadaAtual.senha + localChamado;
+                
+                if (ID_CHAMADA_ATUAL !== ultimaChamadaRecebida) {
+                    // Se for uma nova chamada, adiciona a animação
+                    chamadaPrincipalBox.classList.add('animar');
+                    ultimaChamadaRecebida = ID_CHAMADA_ATUAL;
 
-                const chamadosAnteriores = historico.slice(1); 
-
-                if (chamadosAnteriores.length > 0) {
-                    // Mantém apenas os 2 últimos no histórico (o 3º item da API)
-                    const historicoVisivel = chamadosAnteriores.slice(0, 2); 
-                    
+                    // Remove a animação após 6 segundos para não ser muito intrusiva
+                    setTimeout(() => {
+                        chamadaPrincipalBox.classList.remove('animar');
+                    }, 6000); 
+                }
+                
+                // --- 3. ATUALIZA HISTÓRICO ---
+                listaHistorico.innerHTML = '';
+                // Exibe no máximo 2 chamados no histórico (do índice 1 em diante)
+                const historicoVisivel = chamadosAnteriores.slice(1, 3); 
+                
+                if (historicoVisivel.length > 0) {
                     historicoVisivel.forEach(chamado => {
                         const li = document.createElement('li');
                         li.className = 'chamado-historico';
-                        // Prioriza o Guichê para exibição no histórico
+                        // Prioriza Guichê (Consultório) para exibição
                         const localHistorico = chamado.guiche || chamado.servico || 'Local Desconhecido';
                         
                         li.innerHTML = `
-                            <span class="historico-sala">${localHistorico}</span> 
-                            <br>
+                            <span class="historico-sala">${localHistorico.toUpperCase()}</span> 
                             <span class="historico-paciente">${chamado.senha || 'SN'}</span>
                         `;
                         listaHistorico.appendChild(li);
@@ -306,14 +273,18 @@
                 }
 
             } catch (e) {
-                console.error('Erro ao buscar dados da API:', e);
+                console.error('Erro ao buscar dados da API (Verifique o Render):', e);
                 // Exibe a mensagem de erro no painel se a comunicação falhar
-                document.getElementById('unidade-nome').textContent = `ERRO: API Offline ou URL Inválida.`;
+                principalSala.textContent = `ERRO DE CONEXÃO`;
+                principalPaciente.textContent = `API OFFLINE`;
+                principalHora.textContent = '';
+                chamadaPrincipalBox.classList.remove('animar');
             }
         }
 
         // Inicia o processo de polling (chama a cada 3 segundos)
         atualizarPainel();
+        // A taxa de atualização é rápida para garantir a responsividade
         setInterval(atualizarPainel, 3000); 
     </script>
 </body>
