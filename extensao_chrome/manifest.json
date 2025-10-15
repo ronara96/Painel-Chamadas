@@ -14,7 +14,7 @@
   ],
   "host_permissions": [
     "http://187.1.57.8:8080/*",
-    "https://SUA_URL_PUBLICA_RAILWAY/*" 
+    "https://painel.up.railway.app/*" 
   ],
   "background": {
     "service_worker": "background.js"

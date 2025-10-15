@@ -216,4 +216,105 @@
 
         <div class="secao-historico">
             <h3>ÚLTIMOS CHAMADOS</h3>
-            <ul id="lista
+            <ul id="lista-historico">
+                <li class="lista-vazia">Aguardando primeira chamada...</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 🚨 CONFIGURAÇÃO FINAL! Sua URL pública do Railway:
+        const URL_API_BASE = 'https://painel.up.railway.app'; 
+        
+        // Extrai o ID da unidade da URL do painel
+        function getUnidadeIDFromURL() {
+            const pathArray = window.location.pathname.split('/');
+            // Espera-se que a URL seja /painel/ID_DA_UNIDADE
+            // O ID é o último segmento
+            return pathArray.pop() || pathArray.pop() || 'UNIDADE_PADRAO'; 
+        }
+
+        const UNIDADE_ID = getUnidadeIDFromURL();
+        const MAX_HISTORICO = 3;
+
+        // Atualiza o título do painel
+        document.getElementById('unidade-nome').textContent = `PAINEL DE CHAMADAS | UNIDADE: ${UNIDADE_ID.replace(/_/g, ' ')}`;
+
+        // Função para atualizar o painel com os dados da API
+        async function atualizarPainel() {
+            const url = `${URL_API_BASE}/historico/${UNIDADE_ID}`;
+            
+            try {
+                const response = await fetch(url);
+                const historico = await response.json();
+
+                if (!historico || historico.length === 0) {
+                    // Se não houver chamadas, exibe a mensagem de aguardando
+                    document.getElementById('chamada-atual').classList.add('chamada-vazia');
+                    document.getElementById('msg-aguardando').style.display = 'block';
+                    document.getElementById('senha-atual').style.display = 'none';
+                    document.getElementById('paciente-atual').style.display = 'none';
+                    document.getElementById('local-atual').style.display = 'none';
+                    
+                    document.getElementById('lista-historico').innerHTML = '<li class="lista-vazia">Nenhum chamado anterior.</li>';
+                    return;
+                }
+
+                document.getElementById('chamada-atual').classList.remove('chamada-vazia');
+                document.getElementById('msg-aguardando').style.display = 'none';
+                
+                // --- 1. Renderiza a Chamada Atual ---\
+                const chamadaAtual = historico[0];
+                const senha = chamadaAtual.senha || 'SN';
+                const paciente = chamadaAtual.paciente || 'Paciente';
+                const local = chamadaAtual.guiche || chamadaAtual.servico || 'Local Desconhecido';
+                
+                document.getElementById('senha-atual').textContent = senha;
+                document.getElementById('paciente-atual').textContent = paciente;
+                document.getElementById('local-atual').textContent = local;
+
+                document.getElementById('senha-atual').style.display = 'block';
+                document.getElementById('paciente-atual').style.display = 'block';
+                document.getElementById('local-atual').style.display = 'block';
+
+
+                // --- 2. Renderiza o Histórico ---\
+                const listaHistorico = document.getElementById('lista-historico');
+                listaHistorico.innerHTML = ''; 
+
+                const chamadosAnteriores = historico.slice(1); 
+
+                if (chamadosAnteriores.length > 0) {
+                    // Mantém apenas os 2 últimos no histórico (o 3º item da API)
+                    const historicoVisivel = chamadosAnteriores.slice(0, 2); 
+                    
+                    historicoVisivel.forEach(chamado => {
+                        const li = document.createElement('li');
+                        li.className = 'chamado-historico';
+                        // Prioriza o Guichê para exibição no histórico
+                        const localHistorico = chamado.guiche || chamado.servico || 'Local Desconhecido';
+                        
+                        li.innerHTML = `
+                            <span class="historico-sala">${localHistorico}</span> 
+                            <br>
+                            <span class="historico-paciente">${chamado.senha || 'SN'}</span>
+                        `;
+                        listaHistorico.appendChild(li);
+                    });
+                } else {
+                    listaHistorico.innerHTML = '<li class="lista-vazia">Nenhum chamado anterior.</li>';
+                }
+
+            } catch (e) {
+                console.error('Erro ao buscar dados da API:', e);
+                // Exibe a mensagem de erro no painel se a comunicação falhar
+                document.getElementById('unidade-nome').textContent = `ERRO: API Offline ou URL Inválida.`;
+            }
+        }
+
+        // Inicia o processo de polling (chama a cada 3 segundos)
+        atualizarPainel();
+        setInterval(atualizarPainel, 3000); 
+    </script>
+</body>
+</html>
