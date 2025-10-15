@@ -29,13 +29,13 @@
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
-            box-sizing: border-box; /* Garante que padding não afeta o layout */
+            box-sizing: border-box; 
         }
 
         .container {
             display: flex;
             width: 95%; 
-            max-width: 1600px; /* Aumentado para melhor visualização em telas grandes */
+            max-width: 1600px; 
             gap: 20px;
         }
 
@@ -56,7 +56,7 @@
         }
 
         .titulo-painel h1 {
-            /* Ajuste: Tamanho baseado em vw, mas limitado por max() e rem */
+            /* Tamanho ajustado para não ser muito grande */
             font-size: max(1.8rem, 2.5vw); 
             color: var(--cor-azul-principal);
             margin: 0;
@@ -78,22 +78,19 @@
         }
 
         /* Nome do Paciente / Mensagem Aguardando */
-        .chamada-atual p {
-            /* Ajuste: Tamanho grande para o nome, mas com limite */
-            font-size: max(3rem, 4.5vw); 
-            font-weight: 700;
+        .chamada-atual #paciente-atual {
+            /* Tamanho grande para o nome, mas com limite */
+            font-size: max(3.5rem, 5vw); 
+            font-weight: 900;
             margin-bottom: 20px;
             line-height: 1.1;
         }
 
-        /* Senha (SN) - Em destaque no topo */
-        .chamada-atual h2 {
-            /* Ajuste: Tamanho máximo para a senha */
-            font-size: max(5rem, 8vw); 
-            margin-bottom: 15px;
+        /* Mensagem de Aguardando */
+        .chamada-atual #msg-aguardando {
+            /* Tamanho grande para AGUARDANDO */
+            font-size: max(4rem, 6vw); 
             font-weight: 900;
-            letter-spacing: 5px;
-            color: var(--cor-texto-claro); /* Mantém branco para contraste */
         }
         
         /* Local de Destino (Guichê/Consultório) */
@@ -102,7 +99,7 @@
             color: var(--cor-texto-claro);
             padding: 20px 40px;
             border-radius: 10px;
-            /* Ajuste: Tamanho grande para o local, mas limitado */
+            /* Tamanho grande para o local, mas limitado */
             font-size: max(3rem, 5vw); 
             font-weight: 900;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -110,12 +107,8 @@
         }
 
         /* Estilo para o caso de o painel estar vazio (sem chamadas) */
-        .chamada-vazia h2, .chamada-vazia p {
-            color: rgba(255, 255, 255, 0.8) !important;
-        }
-        
         .chamada-vazia p {
-            font-size: max(4rem, 6vw); /* Aumenta a mensagem de AGUARDANDO */
+            color: rgba(255, 255, 255, 0.8) !important;
         }
         
         .chamada-vazia .local-destino {
@@ -162,8 +155,7 @@
         }
 
         .historico-paciente {
-            /* Ajuste: Tamanho fixo e legível para a senha no histórico */
-            font-size: 2rem; 
+            font-size: 1.6rem; 
             color: var(--cor-texto-principal);
             font-weight: 900;
             display: block;
@@ -188,7 +180,6 @@
 
             <div id="chamada-atual" class="chamada-atual">
                 <p id="msg-aguardando">AGUARDANDO PRÓXIMA CHAMADA</p>
-                <h2 id="senha-atual" style="display: none;"></h2>
                 <p id="paciente-atual" style="display: none;"></p>
                 <div id="local-atual" class="local-destino" style="display: none;"></div>
             </div>
@@ -203,9 +194,13 @@
     </div>
 
     <script>
+        // --- VARIÁVEL GLOBAL PARA O TTS ---
+        // Armazena o ID da última chamada falada para evitar repetição
+        let ultimaChamadaFalada = '';
+        const audioEmCurso = window.speechSynthesis;
+
         // 🚨 CONFIGURAÇÃO FINAL! Sua URL pública da API:
-        // Use a URL correta da sua API (Railway, Render, etc.)
-        const URL_API_BASE = 'https://painel-chamadas.onrender.com'; // Exemplo, ajuste se o Railway for a URL principal
+        const URL_API_BASE = 'https://painel-chamadas.onrender.com'; // Sua URL do Render
         
         // Extrai o ID da unidade da URL do painel
         function getUnidadeIDFromURL() {
@@ -218,9 +213,29 @@
         // Atualiza o título do painel
         document.getElementById('unidade-nome').textContent = `PAINEL DE CHAMADAS | UNIDADE: ${UNIDADE_ID.replace(/_/g, ' ').toUpperCase()}`;
 
+        // Função de Text-to-Speech (TTS)
+        function falar(texto, local) {
+            // Para qualquer áudio anterior
+            if (audioEmCurso.speaking) {
+                audioEmCurso.cancel();
+            }
+            
+            // Constrói a mensagem
+            const msg = new SpeechSynthesisUtterance();
+            
+            // Corrige a pronúncia do 'CONSULTÓRIO'
+            let textoLocal = local.toUpperCase().includes('CONSULTÓRIO') ? local.replace('CONSULTÓRIO ', 'Consultório ') : local;
+            
+            // Mensagem de áudio
+            msg.text = `Chamando ${texto}. Por favor, dirija-se a ${textoLocal}.`;
+            msg.lang = 'pt-BR';
+            msg.rate = 0.9; // Velocidade de fala
+            
+            audioEmCurso.speak(msg);
+        }
+
         // Função para atualizar o painel com os dados da API
         async function atualizarPainel() {
-            // A API já corrige o case (maiúsculas/minúsculas) no servidor.
             const url = `${URL_API_BASE}/historico/${UNIDADE_ID}`; 
             
             try {
@@ -229,10 +244,9 @@
                 const historico = data.historico || [];
 
                 if (historico.length === 0) {
-                    // MODO IDLE
+                    // MODO IDLE (Vazio)
                     document.getElementById('chamada-atual').classList.add('chamada-vazia');
                     document.getElementById('msg-aguardando').style.display = 'block';
-                    document.getElementById('senha-atual').style.display = 'none';
                     document.getElementById('paciente-atual').style.display = 'none';
                     document.getElementById('local-atual').style.display = 'none';
                     
@@ -244,30 +258,36 @@
                 document.getElementById('chamada-atual').classList.remove('chamada-vazia');
                 document.getElementById('msg-aguardando').style.display = 'none';
                 
-                // --- 1. Renderiza a Chamada Atual ---\
+                // --- 1. Renderiza a Chamada Atual ---
                 const chamadaAtual = historico[0];
-                const senha = chamadaAtual.senha || 'SN';
+                // ID único para controle do áudio (hora + nome do paciente)
+                const idChamada = chamadaAtual.hora + chamadaAtual.paciente; 
                 const paciente = chamadaAtual.paciente || 'Paciente';
                 const local = chamadaAtual.guiche || chamadaAtual.servico || 'Local Desconhecido';
-                
-                // Exibe a senha (ou 'SN') no topo grande, e o nome do paciente logo abaixo.
-                document.getElementById('senha-atual').textContent = senha;
-                document.getElementById('paciente-atual').textContent = paciente.toUpperCase(); // Paciente em maiúsculas
-                document.getElementById('local-atual').textContent = local.toUpperCase(); // Local em maiúsculas
 
-                document.getElementById('senha-atual').style.display = 'block';
+                document.getElementById('paciente-atual').textContent = paciente.toUpperCase();
+                document.getElementById('local-atual').textContent = local.toUpperCase();
+
                 document.getElementById('paciente-atual').style.display = 'block';
                 document.getElementById('local-atual').style.display = 'block';
 
+                
+                // 🚨 CONTROLE DE ÁUDIO (TTS)
+                if (idChamada !== ultimaChamadaFalada) {
+                    // Só fala se a chamada for realmente nova
+                    falar(paciente, local);
+                    ultimaChamadaFalada = idChamada; // Atualiza o último ID falado
+                }
 
-                // --- 2. Renderiza o Histórico ---\
+
+                // --- 2. Renderiza o Histórico ---
                 const listaHistorico = document.getElementById('lista-historico');
                 listaHistorico.innerHTML = ''; 
 
                 const chamadosAnteriores = historico.slice(1); 
 
                 if (chamadosAnteriores.length > 0) {
-                    // Mantém apenas os 2 últimos no histórico (os 2º e 3º itens da API)
+                    // Exibe os 2 últimos chamados no histórico
                     const historicoVisivel = chamadosAnteriores.slice(0, 2); 
                     
                     historicoVisivel.forEach(chamado => {
@@ -277,7 +297,7 @@
                         
                         li.innerHTML = `
                             <span class="historico-sala">${localHistorico.toUpperCase()}</span> 
-                            <span class="historico-paciente">${chamado.senha || 'SN'}</span>
+                            <span class="historico-paciente">${chamado.paciente.toUpperCase() || 'PACIENTE'}</span>
                         `;
                         listaHistorico.appendChild(li);
                     });
@@ -288,15 +308,10 @@
             } catch (e) {
                 console.error('Erro ao buscar dados da API:', e);
                 // Exibe a mensagem de erro no painel se a comunicação falhar
-                document.getElementById('unidade-nome').textContent = `ERRO: API OFFLINE OU URL INVÁLIDA. TENTANDO RECONECTAR...`;
-                
-                // Força o modo idle em caso de erro de comunicação
+                document.getElementById('unidade-nome').textContent = `ERRO: API OFFLINE. TENTANDO...`;
                 document.getElementById('chamada-atual').classList.add('chamada-vazia');
                 document.getElementById('msg-aguardando').textContent = `ERRO DE CONEXÃO`;
                 document.getElementById('msg-aguardando').style.display = 'block';
-                document.getElementById('senha-atual').style.display = 'none';
-                document.getElementById('paciente-atual').style.display = 'none';
-                document.getElementById('local-atual').style.display = 'none';
             }
         }
 
