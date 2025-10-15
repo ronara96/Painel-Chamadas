@@ -7,323 +7,269 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* --- ESTILOS MODERNOS, ELEGANTES E DE ALTA LEGIBILIDADE --- */
+        /* Variáveis CSS baseadas no layout azul/verde */
         :root {
-            --cor-fundo-claro: #F0F4F8;       /* Fundo Gelo/Claro */
-            --cor-azul-principal: #174776;    /* Azul Escuro Profissional (Bloco Principal) */
-            --cor-verde-destaque: #28a745;    /* Verde Destaque (Guichê/Serviço - Chamada Ativa) */
-            --cor-texto-escuro: #333333;      /* Preto Suave para Legibilidade */
-            --cor-texto-claro: #FFFFFF;       /* Branco (dentro do bloco azul) */
-            --cor-sombra: 0 10px 25px rgba(0, 0, 0, 0.2); /* Sombra Elegante */
+            --cor-azul-principal: #174776;    /* Azul Escuro Profissional */
+            --cor-verde-destaque: #28a745; /* Verde Destaque (Guichê) */
+            --cor-fundo-claro: #F0F4F8; /* Fundo Geral Gelo */
+            --cor-texto-principal: #333333;
+            --cor-texto-claro: #FFFFFF;
+            --cor-sombra: 0 8px 20px rgba(0, 0, 0, 0.2);
             --tempo-animacao: 0.5s;
+            font-size: 16px; /* Define o tamanho base da fonte */
         }
 
         body {
             font-family: 'Montserrat', sans-serif;
             background-color: var(--cor-fundo-claro);
-            color: var(--cor-texto-escuro);
+            color: var(--cor-texto-principal);
             margin: 0;
             padding: 20px;
-            display: grid;
-            grid-template-rows: 15% 55% 30%; /* Título, Principal, Histórico */
-            height: 96vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            box-sizing: border-box; /* Garante que padding não afeta o layout */
+        }
+
+        .container {
+            display: flex;
+            width: 95%; 
+            max-width: 1600px; /* Aumentado para melhor visualização em telas grandes */
             gap: 20px;
-            overflow: hidden;
-            box-sizing: border-box;
         }
 
-        /* --- SEÇÃO DE TÍTULO --- */
-        .header {
+        /* --- SEÇÃO PRINCIPAL (2/3) --- */
+        .secao-principal {
+            flex: 2; 
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .titulo-painel {
             text-align: center;
-            padding: 10px 0;
-            border-bottom: 3px solid #E0E0E0;
-        }
-        .header h1 {
-            font-size: 2.8vw;
-            font-weight: 900;
-            color: var(--cor-texto-escuro);
-            margin: 0;
-        }
-        #unidade-nome {
-            font-size: 1.8vw;
-            font-weight: 700;
-            color: var(--cor-azul-principal);
+            padding: 15px 0;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: var(--cor-sombra);
         }
 
-        /* --- SEÇÃO DE CHAMADA PRINCIPAL (DESTAQUE) --- */
-        .chamada-principal-container {
+        .titulo-painel h1 {
+            /* Ajuste: Tamanho baseado em vw, mas limitado por max() e rem */
+            font-size: max(1.8rem, 2.5vw); 
+            color: var(--cor-azul-principal);
+            margin: 0;
+            font-weight: 900;
+        }
+        
+        .chamada-atual {
+            background-color: var(--cor-azul-principal);
+            color: var(--cor-texto-claro);
+            padding: 50px;
+            border-radius: 15px;
+            box-shadow: var(--cor-sombra);
+            text-align: center;
+            min-height: 500px; 
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: var(--cor-azul-principal);
-            border-radius: 20px;
-            box-shadow: var(--cor-sombra);
-            padding: 50px;
-            text-align: center;
-            transition: transform var(--tempo-animacao);
-            border: 8px solid transparent;
-            position: relative;
-        }
-        
-        /* Animação de Pulsar para a Chamada */
-        @keyframes pulse-border {
-            0% { border-color: rgba(255, 255, 255, 0.4); }
-            50% { border-color: var(--cor-verde-destaque); }
-            100% { border-color: rgba(255, 255, 255, 0.4); }
-        }
-        .animar {
-             animation: pulse-border 1.5s infinite alternate;
         }
 
-        #chamada-principal-sala {
-            font-size: 6vw;
-            font-weight: 900;
-            color: var(--cor-verde-destaque); /* Cor ATIVA: Verde para o Consultório/Serviço */
-            text-transform: uppercase;
-            margin-bottom: 0.1em;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-            transition: color 0.5s, font-size 0.5s; 
-        }
-        
-        /* 🚨 CLASSE PARA MODO IDLE (AGUARDANDO) - Deixa a mensagem compacta e branca */
-        .idle-status-text {
-            color: var(--cor-texto-claro) !important; 
-            opacity: 0.9;
-            font-size: 5vw !important; /* Fonte menor para a mensagem de espera */
-            font-weight: 700 !important;
-            margin-bottom: 0 !important;
-        }
-        
-        #chamada-principal-paciente {
-            font-size: 10vw; 
-            font-weight: 900;
-            color: var(--cor-texto-claro);
-            margin: 0;
-            line-height: 1.1;
-            transition: color 0.5s, font-size 0.5s; 
-        }
-        
-        /* O "PACIENTE:" desaparece no modo idle, mas aparece no modo ativo */
-        #chamada-principal-paciente::before {
-            content: "PACIENTE: ";
-            font-size: 0.2em;
-            font-weight: 400;
-            display: block;
-            opacity: 0.8;
-            color: #ccc;
-        }
-        .idle-status-text::before {
-            content: none !important;
-        }
-        
-        #chamada-principal-hora {
-            position: absolute;
-            top: 25px;
-            right: 35px;
-            font-size: 1.8vw;
-            font-weight: 400;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        /* --- SEÇÃO DE HISTÓRICO --- */
-        .historico-container {
-            background: #ffffff;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        .historico-container h2 {
-            font-size: 2.2vw;
+        /* Nome do Paciente / Mensagem Aguardando */
+        .chamada-atual p {
+            /* Ajuste: Tamanho grande para o nome, mas com limite */
+            font-size: max(3rem, 4.5vw); 
             font-weight: 700;
-            color: var(--cor-texto-escuro);
-            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+
+        /* Senha (SN) - Em destaque no topo */
+        .chamada-atual h2 {
+            /* Ajuste: Tamanho máximo para a senha */
+            font-size: max(5rem, 8vw); 
+            margin-bottom: 15px;
+            font-weight: 900;
+            letter-spacing: 5px;
+            color: var(--cor-texto-claro); /* Mantém branco para contraste */
+        }
+        
+        /* Local de Destino (Guichê/Consultório) */
+        .local-destino {
+            background-color: var(--cor-verde-destaque);
+            color: var(--cor-texto-claro);
+            padding: 20px 40px;
+            border-radius: 10px;
+            /* Ajuste: Tamanho grande para o local, mas limitado */
+            font-size: max(3rem, 5vw); 
+            font-weight: 900;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 10px;
+        }
+
+        /* Estilo para o caso de o painel estar vazio (sem chamadas) */
+        .chamada-vazia h2, .chamada-vazia p {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+        
+        .chamada-vazia p {
+            font-size: max(4rem, 6vw); /* Aumenta a mensagem de AGUARDANDO */
+        }
+        
+        .chamada-vazia .local-destino {
+             background-color: #555;
+        }
+        
+        /* --- SEÇÃO HISTÓRICO (1/3) --- */
+        .secao-historico {
+            flex: 1; 
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: var(--cor-sombra);
+        }
+
+        .secao-historico h3 {
+            font-size: 1.8rem;
+            color: var(--cor-texto-principal);
+            border-bottom: 3px solid var(--cor-azul-principal);
             padding-bottom: 10px;
             margin-top: 0;
+            font-weight: 700;
         }
-        .historico-lista {
+
+        #lista-historico {
             list-style: none;
             padding: 0;
             margin: 0;
-            display: flex;
-            gap: 20px;
-            justify-content: space-around;
         }
+
         .chamado-historico {
-            background: #f1f1f1;
-            border-radius: 10px;
-            padding: 15px 25px;
-            flex-grow: 1;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border-left: 5px solid var(--cor-azul-principal);
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #f2f2f2;
         }
+
         .historico-sala {
-            font-size: 1.8vw;
-            font-weight: 700;
+            font-size: 1.2rem;
             color: var(--cor-verde-destaque);
+            font-weight: 700;
             display: block;
-            margin-bottom: 5px;
         }
+
         .historico-paciente {
-            font-size: 3vw;
+            /* Ajuste: Tamanho fixo e legível para a senha no histórico */
+            font-size: 2rem; 
+            color: var(--cor-texto-principal);
             font-weight: 900;
-            color: var(--cor-texto-escuro);
             display: block;
         }
+        
         .lista-vazia {
-            font-size: 1.5vw;
-            color: #777;
+            font-style: italic;
+            color: #999;
             text-align: center;
-            width: 100%;
-            padding: 20px;
+            padding: 30px;
+            font-size: 1.2rem;
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        
+        <div class="secao-principal">
+            <div class="titulo-painel">
+                <h1 id="unidade-nome">PAINEL DE CHAMADAS | CARREGANDO UNIDADE...</h1>
+            </div>
 
-    <div class="header">
-        <h1>PAINEL DE ATENDIMENTO</h1>
-        <span id="unidade-nome">Carregando Unidade...</span>
-    </div>
+            <div id="chamada-atual" class="chamada-atual">
+                <p id="msg-aguardando">AGUARDANDO PRÓXIMA CHAMADA</p>
+                <h2 id="senha-atual" style="display: none;"></h2>
+                <p id="paciente-atual" style="display: none;"></p>
+                <div id="local-atual" class="local-destino" style="display: none;"></div>
+            </div>
+        </div>
 
-    <div class="chamada-principal-container" id="chamada-principal-box">
-        <span id="chamada-principal-sala">Aguardando Chamada</span>
-        <span id="chamada-principal-paciente">...</span>
-        <span id="chamada-principal-hora"></span>
-    </div>
-
-    <div class="historico-container">
-        <h2>Últimas Chamadas</h2>
-        <ul class="historico-lista" id="lista-historico">
-            <li class="lista-vazia">Aguardando dados da API...</li>
-        </ul>
+        <div class="secao-historico">
+            <h3>ÚLTIMOS CHAMADOS</h3>
+            <ul id="lista-historico">
+                <li class="lista-vazia">Aguardando primeira chamada...</li>
+            </ul>
+        </div>
     </div>
 
     <script>
-        // 🚨 LINHA CRÍTICA 1: URL BASE DA API APONTANDO PARA O RENDER
-        const API_URL_BASE = 'https://painel-chamadas.onrender.com'; 
+        // 🚨 CONFIGURAÇÃO FINAL! Sua URL pública da API:
+        // Use a URL correta da sua API (Railway, Render, etc.)
+        const URL_API_BASE = 'https://painel-chamadas.onrender.com'; // Exemplo, ajuste se o Railway for a URL principal
         
-        let ultimaChamadaRecebida = null;
-        let ultimaFalaLida = null; // Para controlar o áudio
-
-        // 1. Extração do ID da Unidade da URL
-        const urlPartes = window.location.pathname.split('/');
-        const UNIDADE_ID = urlPartes[urlPartes.length - 1]; 
-        
-        document.getElementById('unidade-nome').textContent = UNIDADE_ID.replace(/_/g, ' ');
-        const URL_HISTORICO = `${API_URL_BASE}/historico/${UNIDADE_ID}`;
-
-        // Referências do DOM
-        const chamadaPrincipalBox = document.getElementById('chamada-principal-box');
-        const principalSala = document.getElementById('chamada-principal-sala');
-        const principalPaciente = document.getElementById('chamada-principal-paciente');
-        const principalHora = document.getElementById('chamada-principal-hora');
-        const listaHistorico = document.getElementById('lista-historico');
-        
-        // --- FUNÇÃO DE ÁUDIO ---
-        function falarChamada(paciente, destino) {
-            if (!('speechSynthesis' in window)) {
-                console.warn("API de Síntese de Voz não suportada neste navegador.");
-                return;
-            }
-
-            const utterance = new SpeechSynthesisUtterance(`${paciente}, favor se dirigir ao ${destino} para o atendimento.`);
-            
-            utterance.lang = 'pt-BR';
-            utterance.rate = 1.0; 
-            utterance.pitch = 1.0; 
-            
-            const setVoice = () => {
-                const voices = window.speechSynthesis.getVoices();
-                let voz = voices.find(v => v.lang.includes('pt') && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('daniel') || v.name.includes('Google português do Brasil')));
-                
-                if (!voz) {
-                    voz = voices.find(v => v.lang.includes('pt'));
-                }
-                
-                if (voz) {
-                    utterance.voice = voz;
-                }
-                window.speechSynthesis.speak(utterance);
-            };
-
-            if (window.speechSynthesis.getVoices().length > 0) {
-                setVoice();
-            } else {
-                window.speechSynthesis.onvoiceschanged = setVoice;
-            }
+        // Extrai o ID da unidade da URL do painel
+        function getUnidadeIDFromURL() {
+            const pathArray = window.location.pathname.split('/');
+            return pathArray.pop() || pathArray.pop() || 'UNIDADE_PADRAO'; 
         }
 
-        // Função principal para buscar e atualizar o painel
+        const UNIDADE_ID = getUnidadeIDFromURL();
+        
+        // Atualiza o título do painel
+        document.getElementById('unidade-nome').textContent = `PAINEL DE CHAMADAS | UNIDADE: ${UNIDADE_ID.replace(/_/g, ' ').toUpperCase()}`;
+
+        // Função para atualizar o painel com os dados da API
         async function atualizarPainel() {
+            // A API já corrige o case (maiúsculas/minúsculas) no servidor.
+            const url = `${URL_API_BASE}/historico/${UNIDADE_ID}`; 
+            
             try {
-                const response = await fetch(URL_HISTORICO);
-                
-                if (!response.ok) {
-                    throw new Error(`Erro HTTP: ${response.status}`);
-                }
-                
+                const response = await fetch(url);
                 const data = await response.json();
-                const chamadosAnteriores = data.historico || [];
-                
-                document.getElementById('unidade-nome').textContent = UNIDADE_ID.replace(/_/g, ' ');
-                
-                // 🚨 LINHA DE DEBUG: VERIFICA SE O DADO ESTÁ CHEGANDO!
-                console.log('API retornou chamados:', chamadosAnteriores.length);
-                
-                if (chamadosAnteriores.length === 0) {
-                    // MODO IDLE ATIVADO: Mensagem única e compacta no local do Serviço/Consultório
-                    principalSala.textContent = 'AGUARDANDO PRÓXIMA CHAMADA'; 
-                    principalPaciente.textContent = ''; // Campo paciente VAZIO
-                    principalHora.textContent = '';
-                    chamadaPrincipalBox.classList.remove('animar');
-                    listaHistorico.innerHTML = '<li class="lista-vazia">Nenhum chamado anterior.</li>';
+                const historico = data.historico || [];
+
+                if (historico.length === 0) {
+                    // MODO IDLE
+                    document.getElementById('chamada-atual').classList.add('chamada-vazia');
+                    document.getElementById('msg-aguardando').style.display = 'block';
+                    document.getElementById('senha-atual').style.display = 'none';
+                    document.getElementById('paciente-atual').style.display = 'none';
+                    document.getElementById('local-atual').style.display = 'none';
                     
-                    // Adiciona a classe para forçar a cor e tamanho compactos
-                    principalSala.classList.add('idle-status-text');
-                    principalPaciente.classList.add('idle-status-text');
+                    document.getElementById('lista-historico').innerHTML = '<li class="lista-vazia">Nenhum chamado anterior.</li>';
                     return;
                 }
 
-                // MODO ATIVO: Remove a classe idle para usar o estilo normal
-                principalSala.classList.remove('idle-status-text');
-                principalPaciente.classList.remove('idle-status-text');
-
-
-                // --- 1. ATUALIZA CHAMADA PRINCIPAL ---
-                const chamadaAtual = chamadosAnteriores[0];
+                // MODO ATIVO
+                document.getElementById('chamada-atual').classList.remove('chamada-vazia');
+                document.getElementById('msg-aguardando').style.display = 'none';
                 
-                const localChamado = chamadaAtual.guiche || chamadaAtual.servico || 'Local Desconhecido';
-                const nomePaciente = chamadaAtual.paciente || chamadaAtual.senha || 'Paciente Não Identificado';
+                // --- 1. Renderiza a Chamada Atual ---\
+                const chamadaAtual = historico[0];
+                const senha = chamadaAtual.senha || 'SN';
+                const paciente = chamadaAtual.paciente || 'Paciente';
+                const local = chamadaAtual.guiche || chamadaAtual.servico || 'Local Desconhecido';
                 
-                principalSala.textContent = localChamado;
-                principalPaciente.textContent = nomePaciente;
-                principalHora.textContent = chamadaAtual.hora || '';
+                // Exibe a senha (ou 'SN') no topo grande, e o nome do paciente logo abaixo.
+                document.getElementById('senha-atual').textContent = senha;
+                document.getElementById('paciente-atual').textContent = paciente.toUpperCase(); // Paciente em maiúsculas
+                document.getElementById('local-atual').textContent = local.toUpperCase(); // Local em maiúsculas
+
+                document.getElementById('senha-atual').style.display = 'block';
+                document.getElementById('paciente-atual').style.display = 'block';
+                document.getElementById('local-atual').style.display = 'block';
 
 
-                // --- 2. ANIMAÇÃO E ÁUDIO DE NOVA CHAMADA ---
-                const ID_CHAMADA_ATUAL = localChamado + nomePaciente + chamadaAtual.hora; 
-                
-                if (ID_CHAMADA_ATUAL !== ultimaChamadaRecebida) {
-                    chamadaPrincipalBox.classList.add('animar');
-                    ultimaChamadaRecebida = ID_CHAMADA_ATUAL;
+                // --- 2. Renderiza o Histórico ---\
+                const listaHistorico = document.getElementById('lista-historico');
+                listaHistorico.innerHTML = ''; 
 
-                    if (ID_CHAMADA_ATUAL !== ultimaFalaLida) {
-                        falarChamada(nomePaciente, localChamado);
-                        ultimaFalaLida = ID_CHAMADA_ATUAL;
-                    }
+                const chamadosAnteriores = historico.slice(1); 
+
+                if (chamadosAnteriores.length > 0) {
+                    // Mantém apenas os 2 últimos no histórico (os 2º e 3º itens da API)
+                    const historicoVisivel = chamadosAnteriores.slice(0, 2); 
                     
-                    setTimeout(() => {
-                        chamadaPrincipalBox.classList.remove('animar');
-                    }, 6000); 
-                }
-                
-                // --- 3. ATUALIZA HISTÓRICO ---
-                listaHistorico.innerHTML = '';
-                const historicoVisivel = chamadosAnteriores.slice(1, 3); 
-                
-                if (historicoVisivel.length > 0) {
                     historicoVisivel.forEach(chamado => {
                         const li = document.createElement('li');
                         li.className = 'chamado-historico';
@@ -331,7 +277,7 @@
                         
                         li.innerHTML = `
                             <span class="historico-sala">${localHistorico.toUpperCase()}</span> 
-                            <span class="historico-paciente">${chamado.paciente || 'SN'}</span>
+                            <span class="historico-paciente">${chamado.senha || 'SN'}</span>
                         `;
                         listaHistorico.appendChild(li);
                     });
@@ -340,17 +286,17 @@
                 }
 
             } catch (e) {
-                console.error('Erro ao buscar dados da API (Verifique o Render):', e);
-                // Exibição do erro na área de destaque
-                document.getElementById('unidade-nome').textContent = 'Erro de Comunicação - Tentando Reconectar...';
-                principalSala.textContent = `ERRO DE CONEXÃO`;
-                principalPaciente.textContent = `API OFFLINE`;
-                principalHora.textContent = '';
-                chamadaPrincipalBox.classList.remove('animar');
+                console.error('Erro ao buscar dados da API:', e);
+                // Exibe a mensagem de erro no painel se a comunicação falhar
+                document.getElementById('unidade-nome').textContent = `ERRO: API OFFLINE OU URL INVÁLIDA. TENTANDO RECONECTAR...`;
                 
-                // Garante que o erro de conexão também seja em destaque branco
-                principalSala.classList.add('idle-status-text');
-                principalPaciente.classList.add('idle-status-text');
+                // Força o modo idle em caso de erro de comunicação
+                document.getElementById('chamada-atual').classList.add('chamada-vazia');
+                document.getElementById('msg-aguardando').textContent = `ERRO DE CONEXÃO`;
+                document.getElementById('msg-aguardando').style.display = 'block';
+                document.getElementById('senha-atual').style.display = 'none';
+                document.getElementById('paciente-atual').style.display = 'none';
+                document.getElementById('local-atual').style.display = 'none';
             }
         }
 
