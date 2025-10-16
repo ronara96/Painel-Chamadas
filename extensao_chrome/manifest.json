@@ -4,8 +4,8 @@
   "version": "2.0",
   "description": "Substitui o robo.py por um pop-up na extensão.",
   "action": { 
-    "default_title": "Enviar Chamada"
-    // REMOVIDO: "default_popup": "popup.html"
+    "default_title": "Enviar Chamada",
+    "default_popup": "popup.html" // Mantemos, mas a abertura é o problema
   },
   "permissions": [
     "scripting",
@@ -13,7 +13,7 @@
     "storage"
   ],
   "host_permissions": [
-    // SEU SERVIDOR (NÃO MUDOU)
+    // Seu servidor Render
     "https://painel-chamadas.onrender.com/*", 
     // NOVO SISTEMA (CORRIGIDO)
     "https://esus.pnl.mg.gov.br/*" 
@@ -24,7 +24,7 @@
   "content_scripts": [
     {
       "matches": [
-        // CORREÇÃO DA URL PARA ACEITAR QUALQUER COISA APÓS /lista-atendimento/
+        // CORREÇÃO DA URL: Novo domínio e aceita qualquer sub-página
         "https://esus.pnl.mg.gov.br/lista-atendimento/*"
       ],
       "js": [
