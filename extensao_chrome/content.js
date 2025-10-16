@@ -2,12 +2,18 @@
 
 console.log("ROBÔ EXTENSÃO VERSÃO 3.0 - Usando Painel Flutuante Injetado.");
 
-// --- XPATHs e Funções de Captura ---
+// --- XPATHs FINAIS E UNIVERSAIS CORRIGIDOS ---
 const API_URL_BASE = 'https://painel-chamadas.onrender.com'; // Sua API do Render
 
+// 1. XPATH UNIVERSAL PARA NOME DO PACIENTE
 const XPATH_TODOS_OS_NOMES = '//*[@id="root"]/div/div[3]/main/div[2]/div/div/div[2]/div/div[1]/div/div/div/div[*]/div/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/span';
-const XPATH_TODOS_OS_BOTOES_MENU = '//*[@id="root"]/div/div[3]/main/div[2]/div/div/div[2]/div/div[1]/div/div/div/div[*]//*[self::button or @role="button"][1]';
-const XPATH_NOME_DA_UNIDADE = '//*[@id="root"]/div/div[3]/div[1]/header/div/div/div/div[3]/div/div/div[2]/div'; 
+
+// 2. XPATH UNIVERSAL PARA O BOTÃO 'CHAMAR'
+// Usa 'div[*]' e aponta para o 2º botão, que é o gatilho correto.
+const XPATH_TODOS_OS_BOTOES_MENU = '//*[@id="root"]/div/div[3]/main/div[2]/div/div/div[2]/div/div[1]/div/div/div/div[*]/div/div[2]/div[3]/div/div/button[2]';
+
+// 3. XPATH ESPECÍFICO PARA A UNIDADE (Correção que aponta para <p>)
+const XPATH_NOME_DA_UNIDADE = '//*[@id="root"]/div/div[3]/div[1]/header/div/div/div/div[2]/div/div/div[2]/div/p'; 
 
 let pacienteGlobal = null;
 let unidadeIDGlobal = null;
@@ -17,14 +23,17 @@ function getUnidadeID() {
     try {
         const result = document.evaluate(XPATH_NOME_DA_UNIDADE, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
         let unidade = result.singleNodeValue ? result.singleNodeValue.textContent.trim() : 'UNIDADE_PADRAO';
+        
+        // Formata para ser uma ID amigável (sem espaços ou caracteres especiais)
         return unidade.toUpperCase().replace(/[^A-Z0-9]+/g, '_'); 
+
     } catch (e) {
         console.error('Erro ao buscar UNIDADE ID:', e);
         return 'UNIDADE_PADRAO';
     }
 }
 
-// --- FUNÇÕES DE INTERAÇÃO COM O PAINEL ---
+// --- FUNÇÕES DE INTERAÇÃO COM O PAINEL E API ---
 
 async function enviarChamada(destino) {
     if (!pacienteGlobal || !unidadeIDGlobal) {
@@ -37,10 +46,10 @@ async function enviarChamada(destino) {
         profissional: 'Não Informado',
         guiche: destino, 
         unidade_id: unidadeIDGlobal,
-        senha: 'SN' 
+        senha: 'SN' // Mantemos 'SN' (Sem Senha) conforme API
     };
     
-    const url = `${API_URL_BASE}/chamar`; // Rota de chamada POST
+    const url = `${API_URL_BASE}/chamar`;
 
     atualizarStatus(`Enviando chamado para ${destino}...`, 'loading');
 
@@ -108,11 +117,12 @@ function criarPainel() {
     // O HTML de destino (similar ao popup.html)
     painelInjetado.innerHTML = `
         <style>
+            /* Estilos CSS injetados no <head> para garantir visibilidade */
             #robô-painel-injetado {
                 position: fixed;
                 top: 10px;
                 right: 10px;
-                z-index: 99999;
+                z-index: 99999; /* Z-Index muito alto para garantir que não será coberto */
                 width: 300px;
                 background-color: #ffffff;
                 border-radius: 10px;
@@ -232,29 +242,37 @@ function criarPainel() {
 function monitorarBotoes() {
     const unidadeID = getUnidadeID();
     
+    // 1. Coleta todos os nomes
     const nomeNodes = document.evaluate(XPATH_TODOS_OS_NOMES, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
     const arrayDeNomes = [];
     for (let i = 0; i < nomeNodes.snapshotLength; i++) {
         arrayDeNomes.push(nomeNodes.snapshotItem(i));
     }
     
+    // 2. Coleta todos os botões de ação (botão "Chamar")
     const botaoNodes = document.evaluate(XPATH_TODOS_OS_BOTOES_MENU, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
     const arrayDeBotoes = [];
     for (let i = 0; i < botaoNodes.snapshotLength; i++) {
         arrayDeBotoes.push(botaoNodes.snapshotItem(i));
     }
     
+    // 3. Adiciona o listener de clique para cada botão
     arrayDeBotoes.forEach((botao, index) => {
+        // Verifica se o listener já foi adicionado
         if (!botao.__listenerAdded) {
             botao.__listenerAdded = true;
             
             botao.addEventListener('click', (event) => {
+                // Previne a ação padrão do botão, se houver
+                // event.preventDefault(); 
+                
                 try {
                     const nomeElement = arrayDeNomes[index];
                     
                     if (nomeElement) {
                         const paciente = nomeElement.textContent.trim();
-                        // MOSTRAR O PAINEL EM VEZ DE ENVIAR MENSAGEM PARA O POPUP
+                        
+                        // MOSTRA O PAINEL FLUTUANTE EM VEZ DE TENTAR ABRIR O POPUP
                         mostrarPainel(paciente, unidadeID); 
                         console.log(`Painel Injetado Ativado: Unidade: ${unidadeID} | Paciente: ${paciente}`);
                     } else {
@@ -269,7 +287,9 @@ function monitorarBotoes() {
     });
 }
 
-// Inicialização e Observador
+// Inicialização e Observador (garante que a função rode quando a lista muda)
 const observer = new MutationObserver(monitorarBotoes);
 observer.observe(document.body, { childList: true, subtree: true });
+
+// Executa a função uma vez quando a página carrega
 monitorarBotoes();
