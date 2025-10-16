@@ -25,7 +25,7 @@
     {
       // CORREÇÃO PRINCIPAL AQUI: O content.js só deve rodar no NOVO endereço!
       "matches": [
-        "https://esus.pnl.mg.gov.br/lista-atendimento*"
+        "https://esus.pnl.mg.gov.br/lista-atendimento/*"
       ],
       "js": [
         "content.js"
