@@ -1,4 +1,4 @@
-# api.py - VERSÃO FINAL (PERSISTÊNCIA, FUSO HORÁRIO DE BRASÍLIA E REMOÇÃO DA SENHA)
+# api.py - VERSÃO FINAL (PERSISTÊNCIA, FUSO HORÁRIO DE BRASÍLIA E CRIAÇÃO DO DIRETÓRIO)
 
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
@@ -15,6 +15,11 @@ CORS(app)
 DATA_DIR = os.path.join(os.getcwd(), 'data')
 MAX_HISTORICO = 3 
 
+# CORREÇÃO CRÍTICA PARA O RENDER: Garante que a pasta 'data' existe na inicialização
+# O exist_ok=True evita erros se a pasta já existir.
+if not os.path.exists(DATA_DIR):
+    os.makedirs(DATA_DIR, exist_ok=True) 
+
 # Define o fuso horário para Brasília
 BRASILIA_TZ = pytz.timezone('America/Sao_Paulo') 
 
@@ -23,7 +28,7 @@ BRASILIA_TZ = pytz.timezone('America/Sao_Paulo')
 
 def get_file_path(unidade_id):
     # Garante que o ID usado no nome do arquivo está padronizado (maiúsculas)
-    return os.path.join(DATA_DIR, f'{unidade_id}.json')
+    return os.path.join(DATA_DIR, f'{unidade_id.upper()}.json')
 
 def load_historico(unidade_id):
     filepath = get_file_path(unidade_id)
@@ -34,53 +39,48 @@ def load_historico(unidade_id):
                 content = f.read()
                 if content:
                     return json.loads(content)
-                return []
-        except Exception as e:
-            print(f"ERRO ao ler JSON de {filepath}: {e}")
+                else:
+                    return []
+        except json.JSONDecodeError as e:
+            print(f"ERRO ao decodificar JSON em {filepath}: {e}")
             return []
     return []
 
 def save_historico(unidade_id, historico):
     filepath = get_file_path(unidade_id)
-    try:
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(historico, f, ensure_ascii=False, indent=4)
-        print(f"DEBUG: Histórico de {unidade_id} SALVO com sucesso em {filepath}")
-    except Exception as e:
-        print(f"ERRO CRÍTICO: Falha ao SALVAR o histórico da unidade {unidade_id} no disco. Erro: {e}") 
+    print(f"DEBUG: Salvando histórico em: {filepath}")
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(historico, f, ensure_ascii=False, indent=4)
 
 
-# --- 3. ROTAS DA API ---
+# --- 3. Rotas da Aplicação ---
 
-# Rota de Diagnóstico
-@app.route('/', methods=['GET'])
-def home():
-    return "API do Painel de Chamadas Rodando. Persistência e Hora de Brasília ativas.", 200
-
-# Rota para SERVIR o Painel HTML
+# Rota para renderizar a página do painel (GET)
 @app.route('/painel/<unidade_id>', methods=['GET'])
-def exibir_painel(unidade_id):
-    return render_template('painel.html') 
+def painel(unidade_id):
+    # Passa o ID da unidade para o template HTML, que o usará no JavaScript
+    return render_template('painel.html', unidade_id=unidade_id.upper())
 
-# Rota para o Pop-up ENVIAR os novos dados da chamada (POST)
-@app.route('/nova-chamada/<unidade_id>', methods=['POST'])
-def receber_nova_chamada(unidade_id):
-    # Garante a padronização do ID da unidade
-    unidade_id = unidade_id.upper() 
-    
+# Rota para a Extensão ENVIAR uma nova chamada (POST)
+@app.route('/chamar', methods=['POST'])
+def receber_nova_chamada():
+    # O payload deve incluir 'unidade_id'
     dados_chamada = request.json
     
-    # Valida apenas a existência do paciente
-    if not dados_chamada or 'paciente' not in dados_chamada:
-        return jsonify({"status": "erro", "mensagem": "Dados de paciente ausentes."}), 400
-
+    # 1. Validação inicial e ID da unidade
+    if not dados_chamada or 'paciente' not in dados_chamada or 'unidade_id' not in dados_chamada:
+        return jsonify({"status": "erro", "mensagem": "Dados de paciente ou unidade ausentes."}), 400
+        
+    unidade_id = dados_chamada['unidade_id'].upper()
+    
     historico = load_historico(unidade_id)
     
-    # Gera a hora correta de Brasília
+    # 2. Gera a hora correta de Brasília
     hora_brasilia = datetime.now(BRASILIA_TZ).strftime("%H:%M:%S") 
     dados_chamada['hora'] = hora_brasilia
     # O campo 'senha' foi removido
     
+    # 3. Atualiza e salva o histórico
     historico.insert(0, dados_chamada)
     historico = historico[:MAX_HISTORICO]
     
@@ -93,16 +93,26 @@ def receber_nova_chamada(unidade_id):
 # Rota para o Painel RECEBER o histórico (GET)
 @app.route('/historico/<unidade_id>', methods=['GET'])
 def get_historico(unidade_id):
-    # Garante a padronização do ID da unidade para leitura do arquivo
+    # Garante a padronização do ID da unidade
     unidade_id = unidade_id.upper() 
-
+    
     historico = load_historico(unidade_id)
     
-    return jsonify({"historico": historico}), 200
+    # Adiciona a chamada atual (primeiro item) e o histórico (resto)
+    if historico:
+        chamada_atual = historico[0]
+        historico_antigo = historico[1:]
+    else:
+        chamada_atual = {}
+        historico_antigo = []
+    
+    return jsonify({
+        "status": "sucesso", 
+        "unidade_id": unidade_id,
+        "chamada_atual": chamada_atual,
+        "historico": historico_antigo
+    }), 200
 
-if __name__ == '__main__':
-    if not os.path.exists(DATA_DIR):
-        os.makedirs(DATA_DIR)
-        print(f"Diretório de dados criado em: {DATA_DIR}")
-        
+# Necessário para Gunicorn (Render)
+if __name__ == "__main__":
     app.run(debug=True)
