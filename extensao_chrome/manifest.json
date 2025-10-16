@@ -1,24 +1,22 @@
 {
   "manifest_version": 3,
-  "name": "Painel de Chamadas Flutuante (v3)",
-  "version": "3.0",
-  "description": "Painel flutuante injetado no site para chamada imediata.",
+  "name": "Painel de Chamadas Nova Aba (v4)",
+  "version": "4.0",
+  "description": "Abre uma nova aba para seleção de destino.",
   "action": { 
-    "default_title": "Painel Flutuante"
-    // REMOVIDA A REFERÊNCIA A "default_popup": "popup.html"
+    "default_title": "Abrir Painel"
   },
   "permissions": [
     "scripting",
-    "activeTab" // Mantemos, mas menos crucial agora
-    // REMOVIDA A PERMISSÃO "storage"
+    "tabs" // Permissão crucial para abrir a nova aba
   ],
   "host_permissions": [
-    // Seu servidor Render
     "https://painel-chamadas.onrender.com/*", 
-    // NOVO SISTEMA
     "https://esus.pnl.mg.gov.br/*" 
   ],
-  // REMOVIDO TODO O BLOCO "background"
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": [
@@ -27,6 +25,13 @@
       "js": [
         "content.js"
       ]
+    }
+  ],
+  // CORREÇÃO: painel_tab.js ADICIONADO AQUI
+  "web_accessible_resources": [
+    {
+      "resources": [ "painel_tab.html", "painel_tab.js" ], 
+      "matches": [ "https://esus.pnl.mg.gov.br/*" ]
     }
   ]
 }

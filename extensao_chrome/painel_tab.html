@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"> 
+    <title>Chamar Paciente - Nova Aba</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos Base e Fonte */
+        body { 
+            width: 400px; 
+            margin: 20px auto; 
+            padding: 20px; 
+            font-family: 'Montserrat', Arial, sans-serif; 
+            background-color: #f7f9fc;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h4 { 
+            margin-top: 0; 
+            color: #174776; /* Azul Escuro Elegante */
+            border-bottom: 2px solid #e0e0e0; 
+            padding-bottom: 8px; 
+            font-size: 1.2em; 
+            font-weight: 700;
+        }
+
+        /* Informação do Paciente */
+        .paciente-info { 
+            margin-bottom: 25px; 
+            padding: 15px; 
+            border-radius: 8px; 
+            background-color: #ffffff; 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #007bff;
+        }
+        .paciente-nome { 
+            font-weight: 700; 
+            color: #333; 
+            font-size: 1.3em; 
+            display: block;
+            margin-top: 5px;
+        }
+        .paciente-info span:first-child { font-size: 0.9em; color: #666; }
+
+        /* Seções de Destino */
+        .guiche-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+        .guiche-section h5 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #174776;
+            font-size: 1em;
+        }
+        .consultorio-row, .servico-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        input, select {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background-color 0.2s;
+        }
+        button:hover { background-color: #0056b3; }
+
+        /* Mensagens de Status */
+        .status-msg {
+            margin-top: 15px;
+            padding: 10px;
+            text-align: center;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.9em;
+        }
+        .status-ok { color: #1e7e34; background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .status-error { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h4>Destino da Chamada</h4>
+    <div class="paciente-info">
+        <span>Paciente:</span>
+        <span id="paciente-nome" class="paciente-nome">Carregando...</span>
+    </div>
+
+    <div class="guiche-section">
+        <h5>Consultório</h5>
+        <div class="consultorio-row">
+            <input type="text" id="input-consultorio" placeholder="Ex: 1, 2, 3">
+            <button id="btn-chamar-consultorio">Chamar</button>
+        </div>
+    </div>
+
+    <div class="guiche-section">
+        <h5>Serviço</h5>
+        <div class="servico-row">
+            <select id="select-servico">
+                <option value="">-- Selecione o Serviço --</option>
+                <option value="ODONTOLOGIA">ODONTOLOGIA</option>
+                <option value="FARMÁCIA">FARMÁCIA</option>
+                <option value="VACINA">VACINA</option>
+                <option value="ENFERMAGEM">ENFERMAGEM</option>
+                <option value="TRIAGEM">TRIAGEM</option>
+                <option value="CURATIVOS">CURATIVOS</option>
+                <option value="EXAMES">EXAMES</option>
+                <option value="CONSULTA">CONSULTA</option>
+            </select>
+            <button id="btn-chamar-servico">Chamar</button>
+        </div>
+    </div>
+    
+    <div id="status-message" class="status-msg">Aguardando dados...</div>
+
+    <script src="painel_tab.js"></script>
+</body>
+</html>
