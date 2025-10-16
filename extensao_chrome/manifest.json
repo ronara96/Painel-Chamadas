@@ -13,9 +13,9 @@
     "storage"
   ],
   "host_permissions": [
-    // Permissão para a API Render
+    // CORREÇÃO 1: Permissão para a API Render (SEU SERVIDOR)
     "https://painel-chamadas.onrender.com/*", 
-    // CORREÇÃO AQUI: Nova permissão para o sistema de lista de atendimento
+    // CORREÇÃO 2: Permissão para o NOVO sistema de lista de atendimento
     "https://esus.pnl.mg.gov.br/*" 
   ],
   "background": {
@@ -23,7 +23,7 @@
   },
   "content_scripts": [
     {
-      // CORREÇÃO PRINCIPAL AQUI: O content.js só deve rodar no novo endereço!
+      // CORREÇÃO PRINCIPAL AQUI: O content.js só deve rodar no NOVO endereço!
       "matches": [
         "https://esus.pnl.mg.gov.br/lista-atendimento*"
       ],
