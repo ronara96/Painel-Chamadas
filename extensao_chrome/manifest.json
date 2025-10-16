@@ -5,7 +5,7 @@
   "description": "Substitui o robo.py por um pop-up na extensão.",
   "action": { 
     "default_title": "Enviar Chamada",
-    "default_popup": "popup.html" // Mantemos, mas a abertura é o problema
+    "default_popup": "popup.html"
   },
   "permissions": [
     "scripting",
@@ -24,7 +24,7 @@
   "content_scripts": [
     {
       "matches": [
-        // CORREÇÃO DA URL: Novo domínio e aceita qualquer sub-página
+        // CORREÇÃO FINAL DA URL: Aceita qualquer sub-página
         "https://esus.pnl.mg.gov.br/lista-atendimento/*"
       ],
       "js": [
