@@ -1,14 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Painel de Chamadas Nova Aba (v4)",
-  "version": "4.0",
-  "description": "Abre uma nova aba para seleção de destino.",
+  "version": "4.1",
+  "description": "Abre ou reusa uma nova aba para seleção de destino.",
   "action": { 
     "default_title": "Abrir Painel"
   },
   "permissions": [
     "scripting",
-    "tabs" // Permissão crucial para abrir a nova aba
+    "tabs" 
   ],
   "host_permissions": [
     "https://painel-chamadas.onrender.com/*", 
@@ -27,7 +27,6 @@
       ]
     }
   ],
-  // CORREÇÃO: painel_tab.js ADICIONADO AQUI
   "web_accessible_resources": [
     {
       "resources": [ "painel_tab.html", "painel_tab.js" ], 

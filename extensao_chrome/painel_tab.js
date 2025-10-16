@@ -1,4 +1,5 @@
-// painel_tab.js - LÓGICA DA NOVA ABA
+// painel_tab.js - LÓGICA DA NOVA ABA (VERSÃO 4.1: CORREÇÃO DA ROTA DE ENVIO)
+
 const API_URL_BASE = 'https://painel-chamadas.onrender.com'; 
 
 let dadosChamada = null;
@@ -12,9 +13,6 @@ chrome.runtime.sendMessage({ action: "obterDadosChamada" }, (response) => {
         pacienteNomeElement.textContent = dadosChamada.paciente;
         statusMessage.textContent = "Selecione o destino acima para chamar.";
         statusMessage.className = 'status-msg';
-        
-        // Opcional: Fecha a aba após 10 minutos se o usuário não fizer nada
-        // setTimeout(() => { window.close(); }, 600000); 
     } else {
         pacienteNomeElement.textContent = "Erro: Sem dados da chamada.";
         statusMessage.textContent = "Por favor, clique no botão 'Chamar' na lista novamente (Erro de comunicação com o background).";
@@ -37,11 +35,12 @@ async function enviarChamada(destino) {
         paciente: paciente,
         profissional: profissional, // 'Não Informado'
         guiche: destino,
-        unidade_id: unidade_id, // Ex: UBS_RETIRO
+        unidade_id: unidade_id, // <--- O ID VAI NO CORPO DO JSON
         senha: 'SN'
     };
 
-    const url = `${API_URL_BASE}/chamar/${unidade_id}`; 
+    // CORREÇÃO: Removido o ID da URL. Agora a rota é apenas /chamar.
+    const url = `${API_URL_BASE}/chamar`; 
     statusMessage.textContent = `Enviando chamado para ${destino}...`;
     statusMessage.className = 'status-msg';
 
