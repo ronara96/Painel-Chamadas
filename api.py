@@ -1,4 +1,4 @@
-# api.py - VERSÃO FINAL (PERSISTÊNCIA, FUSO HORÁRIO DE BRASÍLIA E CRIAÇÃO DO DIRETÓRIO)
+# api.py - VERSÃO 5.0 (Histórico expandido e envio de lista completa)
 
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
@@ -13,10 +13,10 @@ CORS(app)
 
 # Variáveis de controle
 DATA_DIR = os.path.join(os.getcwd(), 'data')
-MAX_HISTORICO = 3 
+# CORREÇÃO 1: Aumenta o histórico para 5 (1 atual + 4 no histórico)
+MAX_HISTORICO = 5 
 
 # CORREÇÃO CRÍTICA PARA O RENDER: Garante que a pasta 'data' existe na inicialização
-# O exist_ok=True evita erros se a pasta já existir.
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR, exist_ok=True) 
 
@@ -78,11 +78,10 @@ def receber_nova_chamada():
     # 2. Gera a hora correta de Brasília
     hora_brasilia = datetime.now(BRASILIA_TZ).strftime("%H:%M:%S") 
     dados_chamada['hora'] = hora_brasilia
-    # O campo 'senha' foi removido
     
     # 3. Atualiza e salva o histórico
     historico.insert(0, dados_chamada)
-    historico = historico[:MAX_HISTORICO]
+    historico = historico[:MAX_HISTORICO] # Agora salva os 5 últimos
     
     save_historico(unidade_id, historico)
     
@@ -96,21 +95,14 @@ def get_historico(unidade_id):
     # Garante a padronização do ID da unidade
     unidade_id = unidade_id.upper() 
     
-    historico = load_historico(unidade_id)
+    historico = load_historico(unidade_id) # Carrega a lista completa (ex: 5 itens)
     
-    # Adiciona a chamada atual (primeiro item) e o histórico (resto)
-    if historico:
-        chamada_atual = historico[0]
-        historico_antigo = historico[1:]
-    else:
-        chamada_atual = {}
-        historico_antigo = []
-    
+    # CORREÇÃO 2: Envia a lista INTEIRA para o painel.
+    # O painel (JavaScript) será responsável por dividir o que é "atual" e "histórico".
     return jsonify({
         "status": "sucesso", 
         "unidade_id": unidade_id,
-        "chamada_atual": chamada_atual,
-        "historico": historico_antigo
+        "historico": historico # Envia a lista completa
     }), 200
 
 # Necessário para Gunicorn (Render)
