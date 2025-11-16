@@ -213,7 +213,11 @@
         // Atualiza o título do painel
         document.getElementById('unidade-nome').textContent = `PAINEL DE CHAMADAS | UNIDADE: ${UNIDADE_ID.replace(/_/g, ' ').toUpperCase()}`;
 
-        // Função de Text-to-Speech (TTS)
+        // ======================================================================
+        // AQUI COMEÇA A FUNÇÃO CORRIGIDA
+        // ======================================================================
+
+        // Função de Text-to-Speech (TTS) - VERSÃO 2.0 (Com Seletor de Voz)
         function falar(texto, local) {
             // Para qualquer áudio anterior
             if (audioEmCurso.speaking) {
@@ -229,10 +233,47 @@
             // Mensagem de áudio
             msg.text = `Chamando ${texto}. Por favor, dirija-se a ${textoLocal}.`;
             msg.lang = 'pt-BR';
-            msg.rate = 0.9; // Velocidade de fala
+
+            // --- INÍCIO DA MODIFICAÇÃO (PEDIDO 4: Voz Masculina) ---
+
+            // 1. Pega a lista de todas as vozes disponíveis
+            const vozes = audioEmCurso.getVoices(); 
+
+            // 2. PROCURA UMA VOZ MASCULINA "FLUIDA" (Google/Microsoft)
+            let vozSelecionada = vozes.find(voz => 
+                voz.lang.startsWith('pt-BR') && 
+                (voz.name.includes('Google') || voz.name.includes('Microsoft')) &&
+                (voz.name.includes('Male') || voz.name.includes('Masculino'))
+            );
+
+            // 3. FALLBACK: Se não achou, pega a primeira voz "fluida" (Google/Microsoft)
+            if (!vozSelecionada) {
+                vozSelecionada = vozes.find(voz => 
+                    voz.lang.startsWith('pt-BR') && 
+                    (voz.name.includes('Google') || voz.name.includes('Microsoft'))
+                );
+            }
+
+            // 4. Se encontrou uma voz, define ela
+            if (vozSelecionada) {
+                msg.voice = vozSelecionada;
+                console.log("Voz selecionada:", vozSelecionada.name);
+            } else {
+                console.log("Voz masculina/fluida não encontrada, usando padrão pt-BR.");
+            }
+
+            // 5. Ajuste "Tranquilo" (Velocidade/Tom)
+            msg.rate = 1;  // 1.0 é a velocidade normal (mais fluida)
+            msg.pitch = 1; // 1.0 é o tom normal.
             
+            // --- FIM DA MODIFICAÇÃO ---
+
             audioEmCurso.speak(msg);
         }
+
+        // ======================================================================
+        // AQUI TERMINA A FUNÇÃO CORRIGIDA
+        // ======================================================================
 
         // Função para atualizar o painel com os dados da API
         async function atualizarPainel() {
