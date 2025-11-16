@@ -56,7 +56,6 @@
         }
 
         .titulo-painel h1 {
-            /* Tamanho ajustado para não ser muito grande */
             font-size: max(1.8rem, 2.5vw); 
             color: var(--cor-azul-principal);
             margin: 0;
@@ -77,36 +76,29 @@
             align-items: center;
         }
 
-        /* Nome do Paciente / Mensagem Aguardando */
         .chamada-atual #paciente-atual {
-            /* Tamanho grande para o nome, mas com limite */
             font-size: max(3.5rem, 5vw); 
             font-weight: 900;
             margin-bottom: 20px;
             line-height: 1.1;
         }
 
-        /* Mensagem de Aguardando */
         .chamada-atual #msg-aguardando {
-            /* Tamanho grande para AGUARDANDO */
             font-size: max(4rem, 6vw); 
             font-weight: 900;
         }
         
-        /* Local de Destino (Guichê/Consultório) */
         .local-destino {
             background-color: var(--cor-verde-destaque);
             color: var(--cor-texto-claro);
             padding: 20px 40px;
             border-radius: 10px;
-            /* Tamanho grande para o local, mas limitado */
             font-size: max(3rem, 5vw); 
             font-weight: 900;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             margin-top: 10px;
         }
 
-        /* Estilo para o caso de o painel estar vazio (sem chamadas) */
         .chamada-vazia p {
             color: rgba(255, 255, 255, 0.8) !important;
         }
@@ -195,14 +187,12 @@
 
     <script>
         // --- VARIÁVEL GLOBAL PARA O TTS ---
-        // Armazena o ID da última chamada falada para evitar repetição
         let ultimaChamadaFalada = '';
         const audioEmCurso = window.speechSynthesis;
 
         // 🚨 CONFIGURAÇÃO FINAL! Sua URL pública da API:
         const URL_API_BASE = 'https://painel-chamadas.onrender.com'; // Sua URL do Render
         
-        // Extrai o ID da unidade da URL do painel
         function getUnidadeIDFromURL() {
             const pathArray = window.location.pathname.split('/');
             return pathArray.pop() || pathArray.pop() || 'UNIDADE_PADRAO'; 
@@ -210,43 +200,27 @@
 
         const UNIDADE_ID = getUnidadeIDFromURL();
         
-        // Atualiza o título do painel
         document.getElementById('unidade-nome').textContent = `PAINEL DE CHAMADAS | UNIDADE: ${UNIDADE_ID.replace(/_/g, ' ').toUpperCase()}`;
-
-        // ======================================================================
-        // AQUI COMEÇA A FUNÇÃO CORRIGIDA
-        // ======================================================================
 
         // Função de Text-to-Speech (TTS) - VERSÃO 2.0 (Com Seletor de Voz)
         function falar(texto, local) {
-            // Para qualquer áudio anterior
             if (audioEmCurso.speaking) {
                 audioEmCurso.cancel();
             }
             
-            // Constrói a mensagem
             const msg = new SpeechSynthesisUtterance();
-            
-            // Corrige a pronúncia do 'CONSULTÓRIO'
             let textoLocal = local.toUpperCase().includes('CONSULTÓRIO') ? local.replace('CONSULTÓRIO ', 'Consultório ') : local;
             
-            // Mensagem de áudio
             msg.text = `Chamando ${texto}. Por favor, dirija-se a ${textoLocal}.`;
             msg.lang = 'pt-BR';
 
-            // --- INÍCIO DA MODIFICAÇÃO (PEDIDO 4: Voz Masculina) ---
-
-            // 1. Pega a lista de todas as vozes disponíveis
             const vozes = audioEmCurso.getVoices(); 
-
-            // 2. PROCURA UMA VOZ MASCULINA "FLUIDA" (Google/Microsoft)
             let vozSelecionada = vozes.find(voz => 
                 voz.lang.startsWith('pt-BR') && 
                 (voz.name.includes('Google') || voz.name.includes('Microsoft')) &&
                 (voz.name.includes('Male') || voz.name.includes('Masculino'))
             );
 
-            // 3. FALLBACK: Se não achou, pega a primeira voz "fluida" (Google/Microsoft)
             if (!vozSelecionada) {
                 vozSelecionada = vozes.find(voz => 
                     voz.lang.startsWith('pt-BR') && 
@@ -254,7 +228,6 @@
                 );
             }
 
-            // 4. Se encontrou uma voz, define ela
             if (vozSelecionada) {
                 msg.voice = vozSelecionada;
                 console.log("Voz selecionada:", vozSelecionada.name);
@@ -262,18 +235,11 @@
                 console.log("Voz masculina/fluida não encontrada, usando padrão pt-BR.");
             }
 
-            // 5. Ajuste "Tranquilo" (Velocidade/Tom)
-            msg.rate = 1;  // 1.0 é a velocidade normal (mais fluida)
-            msg.pitch = 1; // 1.0 é o tom normal.
+            msg.rate = 1;  
+            msg.pitch = 1; 
             
-            // --- FIM DA MODIFICAÇÃO ---
-
             audioEmCurso.speak(msg);
         }
-
-        // ======================================================================
-        // AQUI TERMINA A FUNÇÃO CORRIGIDA
-        // ======================================================================
 
         // Função para atualizar o painel com os dados da API
         async function atualizarPainel() {
@@ -285,26 +251,27 @@
                 const historico = data.historico || [];
 
                 if (historico.length === 0) {
-                    // MODO IDLE (Vazio)
                     document.getElementById('chamada-atual').classList.add('chamada-vazia');
                     document.getElementById('msg-aguardando').style.display = 'block';
                     document.getElementById('paciente-atual').style.display = 'none';
                     document.getElementById('local-atual').style.display = 'none';
-                    
                     document.getElementById('lista-historico').innerHTML = '<li class="lista-vazia">Nenhum chamado anterior.</li>';
                     return;
                 }
 
-                // MODO ATIVO
                 document.getElementById('chamada-atual').classList.remove('chamada-vazia');
                 document.getElementById('msg-aguardando').style.display = 'none';
                 
                 // --- 1. Renderiza a Chamada Atual ---
                 const chamadaAtual = historico[0];
-                // ID único para controle do áudio (hora + nome do paciente)
-                const idChamada = chamadaAtual.hora + chamadaAtual.paciente; 
                 const paciente = chamadaAtual.paciente || 'Paciente';
                 const local = chamadaAtual.guiche || chamadaAtual.servico || 'Local Desconhecido';
+
+                // ======================================================================
+                // 🚨 CORREÇÃO 2: ID ÚNICO MELHORADO
+                // O ID agora inclui o 'local' para diferenciar chamadas do mesmo paciente
+                // ======================================================================
+                const idChamada = chamadaAtual.hora + paciente + local; 
 
                 document.getElementById('paciente-atual').textContent = paciente.toUpperCase();
                 document.getElementById('local-atual').textContent = local.toUpperCase();
@@ -315,7 +282,6 @@
                 
                 // 🚨 CONTROLE DE ÁUDIO (TTS)
                 if (idChamada !== ultimaChamadaFalada) {
-                    // Só fala se a chamada for realmente nova
                     falar(paciente, local);
                     ultimaChamadaFalada = idChamada; // Atualiza o último ID falado
                 }
@@ -328,8 +294,12 @@
                 const chamadosAnteriores = historico.slice(1); 
 
                 if (chamadosAnteriores.length > 0) {
-                    // Exibe os 2 últimos chamados no histórico
-                    const historicoVisivel = chamadosAnteriores.slice(0, 2); 
+                    
+                    // ======================================================================
+                    // 🚨 CORREÇÃO 1: MOSTRAR 3 ÚLTIMOS
+                    // Alterado de slice(0, 2) para slice(0, 3)
+                    // ======================================================================
+                    const historicoVisivel = chamadosAnteriores.slice(0, 3); 
                     
                     historicoVisivel.forEach(chamado => {
                         const li = document.createElement('li');
@@ -348,7 +318,6 @@
 
             } catch (e) {
                 console.error('Erro ao buscar dados da API:', e);
-                // Exibe a mensagem de erro no painel se a comunicação falhar
                 document.getElementById('unidade-nome').textContent = `ERRO: API OFFLINE. TENTANDO...`;
                 document.getElementById('chamada-atual').classList.add('chamada-vazia');
                 document.getElementById('msg-aguardando').textContent = `ERRO DE CONEXÃO`;
