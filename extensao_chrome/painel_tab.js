@@ -1,48 +1,83 @@
-// painel_tab.js - LÓGICA DA NOVA ABA (VERSÃO 4.1: CORREÇÃO DA ROTA DE ENVIO)
+// painel_tab.js - LÓGICA DA NOVA ABA (VERSÃO 5.0: Com Histórico + Sem Fechamento)
 
 const API_URL_BASE = 'https://painel-chamadas.onrender.com'; 
 
-let dadosChamada = null;
+let dadosChamada = null; // Armazenará apenas o paciente ATUAL
 const statusMessage = document.getElementById('status-message');
 const pacienteNomeElement = document.getElementById('paciente-nome');
+const historicoListaElement = document.getElementById('historico-lista');
 
-// Solicita os dados armazenados ao Service Worker (background.js)
+// Elementos dos botões (para desativar)
+const btnConsultorio = document.getElementById('btn-chamar-consultorio');
+const btnServico = document.getElementById('btn-chamar-servico');
+
+// --- 1. FUNÇÕES DE AJUDA ---
+
+function setStatus(tipo, mensagem) {
+    statusMessage.textContent = mensagem;
+    statusMessage.className = `status-msg ${tipo}`; // ex: status-ok, status-error, status-loading
+}
+
+function desativarBotoes(desativar) {
+    btnConsultorio.disabled = desativar;
+    btnServico.disabled = desativar;
+}
+
+// --- 2. SOLICITAÇÃO DE DADOS ---
+// Pede o objeto 'dadosChamadaGlobal' (que contém 'atual' e 'historico')
 chrome.runtime.sendMessage({ action: "obterDadosChamada" }, (response) => {
-    if (response && response.dados && response.dados.paciente) {
-        dadosChamada = response.dados;
-        pacienteNomeElement.textContent = dadosChamada.paciente;
-        statusMessage.textContent = "Selecione o destino acima para chamar.";
-        statusMessage.className = 'status-msg';
+    if (response && response.dados) {
+        
+        // A. Preenche o Paciente ATUAL
+        if (response.dados.atual && response.dados.atual.paciente) {
+            dadosChamada = response.dados.atual; // Salva globalmente o paciente atual
+            pacienteNomeElement.textContent = dadosChamada.paciente;
+            setStatus("", "Selecione o destino acima para chamar.");
+        } else {
+            pacienteNomeElement.textContent = "Erro: Sem dados da chamada.";
+            setStatus("status-error", "Por favor, clique no botão 'Chamar' na lista novamente (Erro de comunicação com o background).");
+        }
+        
+        // B. Preenche o HISTÓRICO
+        historicoListaElement.innerHTML = ''; // Limpa a lista
+        if (response.dados.historico && response.dados.historico.length > 0) {
+            response.dados.historico.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>${item.paciente}</strong> (Prof: ${item.profissional})`;
+                historicoListaElement.appendChild(li);
+            });
+        } else {
+            const li = document.createElement('li');
+            li.textContent = "Nenhum paciente chamado anteriormente nesta sessão.";
+            historicoListaElement.appendChild(li);
+        }
+        
     } else {
-        pacienteNomeElement.textContent = "Erro: Sem dados da chamada.";
-        statusMessage.textContent = "Por favor, clique no botão 'Chamar' na lista novamente (Erro de comunicação com o background).";
-        statusMessage.className = 'status-msg status-error';
+         setStatus("status-error", "Falha crítica ao obter dados do background.");
     }
 });
 
-// Função principal para enviar os dados para a API Pública
+// --- 3. FUNÇÃO DE ENVIO PARA API ---
 async function enviarChamada(destino) {
     if (!dadosChamada) {
-        statusMessage.textContent = "Erro: Dados ausentes.";
-        statusMessage.className = 'status-msg status-error';
+        setStatus("status-error", "Erro: Dados ausentes. Tente chamar na lista e-SUS novamente.");
         return;
     }
 
+    desativarBotoes(true);
+    setStatus("status-loading", `Conectando ao servidor... (Pode levar 20s no 1º chamado)`);
+
     const { paciente, unidade_id, profissional } = dadosChamada;
     
-    // PAYLOAD FINAL ENVIADO AO SERVIDOR (FORMATO JSON)
     const payload = {
         paciente: paciente,
-        profissional: profissional, // 'Não Informado'
+        profissional: profissional,
         guiche: destino,
-        unidade_id: unidade_id, // <--- O ID VAI NO CORPO DO JSON
+        unidade_id: unidade_id,
         senha: 'SN'
     };
 
-    // CORREÇÃO: Removido o ID da URL. Agora a rota é apenas /chamar.
     const url = `${API_URL_BASE}/chamar`; 
-    statusMessage.textContent = `Enviando chamado para ${destino}...`;
-    statusMessage.className = 'status-msg';
 
     try {
         const response = await fetch(url, {
@@ -52,30 +87,27 @@ async function enviarChamada(destino) {
         });
 
         if (response.ok) {
-            statusMessage.textContent = `Chamado enviado para ${destino}! Esta aba será fechada em 3 segundos.`;
-            statusMessage.className = 'status-msg status-ok';
-            // Fecha a aba após o envio bem-sucedido
-            setTimeout(() => { window.close(); }, 3000); 
+            setStatus("status-ok", `Chamado enviado para ${destino}! Esta aba permanecerá aberta.`);
+            // A aba NÃO será fechada.
         } else {
             const erro = await response.json().catch(() => ({mensagem: response.statusText}));
-            statusMessage.textContent = `Erro do servidor (${response.status}): ${erro.mensagem || response.statusText}.`;
-            statusMessage.className = 'status-msg status-error';
+            setStatus("status-error", `Erro do servidor (${response.status}): ${erro.mensagem || response.statusText}. Tente novamente.`);
+            desativarBotoes(false);
         }
     } catch (error) {
-        statusMessage.textContent = `Erro de rede: ${error.message}. Verifique sua conexão ou se o Render está online.`;
-        statusMessage.className = 'status-msg status-error';
+        setStatus("status-error", `Erro de rede: ${error.message}. Verifique sua conexão ou se o Render está online.`);
+        desativarBotoes(false);
     }
 }
 
-// --- LISTENERS DE AÇÃO ---
+// --- 4. LISTENERS DE AÇÃO (sem alterações) ---
 
 // 1. Botão Chamar Consultório
-document.getElementById('btn-chamar-consultorio').addEventListener('click', () => {
+btnConsultorio.addEventListener('click', () => {
     const inputConsultorio = document.getElementById('input-consultorio').value.trim();
     
     if (!inputConsultorio || isNaN(parseInt(inputConsultorio))) {
-        statusMessage.textContent = "Por favor, digite um NÚMERO válido para o Consultório.";
-        statusMessage.className = 'status-msg status-error';
+        setStatus("status-error", "Por favor, digite um NÚMERO válido para o Consultório.");
         return;
     }
     
@@ -84,13 +116,12 @@ document.getElementById('btn-chamar-consultorio').addEventListener('click', () =
 });
 
 // 2. Botão Chamar Serviço
-document.getElementById('btn-chamar-servico').addEventListener('click', () => {
+btnServico.addEventListener('click', () => {
     const selectServico = document.getElementById('select-servico');
     const servicoSelecionado = selectServico.value;
     
     if (!servicoSelecionado) {
-        statusMessage.textContent = "Por favor, selecione um Serviço na lista.";
-        statusMessage.className = 'status-msg status-error';
+        setStatus("status-error", "Por favor, selecione um Serviço na lista.");
         return;
     }
     
