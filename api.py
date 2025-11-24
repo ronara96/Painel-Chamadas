@@ -3,19 +3,21 @@ import json
 from datetime import datetime
 import pytz
 from flask import Flask, jsonify, request, send_from_directory, render_template
-from gtts import gTTS # <<< NOVA IMPORTAÇÃO
-import hashlib # Para criar nomes de arquivo únicos
+from gtts import gTTS 
+import hashlib 
+from flask_cors import CORS # Para lidar com CORS, se estiver usando a Extensão Chrome/Web App
 
 # --- CONFIGURAÇÕES INICIAIS (Ajuste conforme necessário) ---
 app = Flask(__name__)
-MAX_HISTORICO = 5 # Manter os 5 últimos chamados
+CORS(app) # Ativa o CORS para permitir requisições de origens diferentes
+MAX_HISTORICO = 5 
 DATA_DIR = os.path.join(os.getcwd(), 'dados_chamadas')
 
 # Cria o diretório de dados e o diretório de áudio
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR, exist_ok=True) 
 
-AUDIO_DIR = os.path.join(os.getcwd(), 'audio_cache') # <<< NOVO DIRETÓRIO
+AUDIO_DIR = os.path.join(os.getcwd(), 'audio_cache') 
 if not os.path.exists(AUDIO_DIR):
     os.makedirs(AUDIO_DIR, exist_ok=True)
 
@@ -52,30 +54,26 @@ def save_historico(unidade_id, historico):
 def gerar_audio_chamada(paciente, destino, unidade_id):
     """Gera o arquivo MP3 da chamada usando gTTS (voz padrão Google)."""
     
-    # 1. Monta a frase de chamada
-    # Ajustes na pronúncia para leitura (ex: Consultório 1 -> Consultório um)
+    # Monta a frase de chamada
     texto_local = destino.replace('CONSULTÓRIO ', 'Consultório ')
     texto_local = texto_local.replace('SERVIÇO ', 'Serviço ')
     
     frase_chamada = f"Chamando {paciente}. Por favor, dirija-se a {texto_local}."
     
-    # 2. Cria um hash único para o nome do arquivo (para cache)
+    # Cria um hash único para o nome do arquivo (para cache)
     file_hash = hashlib.sha1(frase_chamada.encode('utf-8')).hexdigest()
     filename = f'{unidade_id}_{file_hash}.mp3'
     filepath = os.path.join(AUDIO_DIR, filename)
     
-    # 3. Tenta carregar se o arquivo já existir
+    # Tenta carregar se o arquivo já existir (CACHE)
     if os.path.exists(filepath):
-        print(f"DEBUG: Áudio encontrado em cache: {filename}")
         return filename
     
-    # 4. Gera e salva o MP3
+    # Gera e salva o MP3
     try:
-        # Nota: gTTS usa a voz padrão do Google, que é feminina, mas de alta qualidade.
-        # Ela resolve o problema de soletração e é consistente em qualquer dispositivo.
+        # gTTS usa a voz padrão Google de alta qualidade em português (pt)
         tts = gTTS(text=frase_chamada, lang='pt', slow=False) 
         tts.save(filepath)
-        print(f"DEBUG: Novo áudio gerado e salvo: {filename}")
         return filename
     except Exception as e:
         print(f"ERRO ao gerar áudio com gTTS: {e}")
@@ -108,8 +106,6 @@ def receber_nova_chamada():
     # 2. GERA O ÁUDIO e salva o nome do arquivo
     destino = dados_chamada.get('guiche') or dados_chamada.get('servico')
     audio_file = gerar_audio_chamada(dados_chamada['paciente'], destino, unidade_id)
-    
-    # Salva o nome do arquivo de áudio no histórico
     dados_chamada['audio_file'] = audio_file 
     
     # 3. Atualiza e salva o histórico
@@ -117,8 +113,6 @@ def receber_nova_chamada():
     historico = historico[:MAX_HISTORICO]
     
     save_historico(unidade_id, historico)
-    
-    print(f"Recebida nova chamada em UNIDADE: {unidade_id}. Áudio: {audio_file}")
     
     return jsonify({"status": "sucesso", "mensagem": "Chamada registrada.", "audio_file": audio_file}), 200
 
