@@ -2,30 +2,26 @@ import os
 import json
 from datetime import datetime
 import pytz
-from flask import Flask, jsonify, request, send_from_directory, render_template
+from flask import Flask, jsonify, request, send_file, render_template
 from gtts import gTTS 
-import hashlib 
-from flask_cors import CORS # Para lidar com CORS, se estiver usando a Extensão Chrome/Web App
+from flask_cors import CORS 
+import io # Para trabalhar com MP3 na memória
 
-# --- CONFIGURAÇÕES INICIAIS (Ajuste conforme necessário) ---
+# --- CONFIGURAÇÕES INICIAIS ---
 app = Flask(__name__)
-CORS(app) # Ativa o CORS para permitir requisições de origens diferentes
+CORS(app) 
 MAX_HISTORICO = 5 
 DATA_DIR = os.path.join(os.getcwd(), 'dados_chamadas')
 
-# Cria o diretório de dados e o diretório de áudio
+# Cria o diretório de dados 
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR, exist_ok=True) 
-
-AUDIO_DIR = os.path.join(os.getcwd(), 'audio_cache') 
-if not os.path.exists(AUDIO_DIR):
-    os.makedirs(AUDIO_DIR, exist_ok=True)
 
 # Define o fuso horário para Brasília
 BRASILIA_TZ = pytz.timezone('America/Sao_Paulo') 
 
 
-# --- 2. Funções de Persistência em Disco (JSON) ---
+# --- Funções de Persistência em Disco (JSON) ---
 
 def get_file_path(unidade_id):
     return os.path.join(DATA_DIR, f'{unidade_id.upper()}.json')
@@ -48,44 +44,12 @@ def save_historico(unidade_id, historico):
         json.dump(historico, f, ensure_ascii=False, indent=4)
 
 
-# ----------------------------------------------------
-# FUNÇÃO: Geração de Áudio (TTS)
-# ----------------------------------------------------
-def gerar_audio_chamada(paciente, destino, unidade_id):
-    """Gera o arquivo MP3 da chamada usando gTTS (voz padrão Google)."""
-    
-    # Monta a frase de chamada
-    texto_local = destino.replace('CONSULTÓRIO ', 'Consultório ')
-    texto_local = texto_local.replace('SERVIÇO ', 'Serviço ')
-    
-    frase_chamada = f"Chamando {paciente}. Por favor, dirija-se a {texto_local}."
-    
-    # Cria um hash único para o nome do arquivo (para cache)
-    file_hash = hashlib.sha1(frase_chamada.encode('utf-8')).hexdigest()
-    filename = f'{unidade_id}_{file_hash}.mp3'
-    filepath = os.path.join(AUDIO_DIR, filename)
-    
-    # Tenta carregar se o arquivo já existir (CACHE)
-    if os.path.exists(filepath):
-        return filename
-    
-    # Gera e salva o MP3
-    try:
-        # gTTS usa a voz padrão Google de alta qualidade em português (pt)
-        tts = gTTS(text=frase_chamada, lang='pt', slow=False) 
-        tts.save(filepath)
-        return filename
-    except Exception as e:
-        print(f"ERRO ao gerar áudio com gTTS: {e}")
-        return None
+# --- Rotas da Aplicação ---
 
-
-# --- 3. Rotas da Aplicação ---
-
-# Rota para renderizar a página do painel (GET)
+# Rota para renderizar a página do painel (GET) - CORRIGIDA!
 @app.route('/painel/<unidade_id>', methods=['GET'])
 def painel(unidade_id):
-    # Assume que o painel HTML está em 'templates/painel.html'
+    # O Flask procura templates/painel.html
     return render_template('painel.html', unidade_id=unidade_id.upper())
 
 # Rota para a Extensão ENVIAR uma nova chamada (POST)
@@ -103,10 +67,13 @@ def receber_nova_chamada():
     hora_brasilia = datetime.now(BRASILIA_TZ).strftime("%H:%M:%S") 
     dados_chamada['hora'] = hora_brasilia
     
-    # 2. GERA O ÁUDIO e salva o nome do arquivo
+    # 2. GERA A FRASE COMPLETA E SALVA NO HISTÓRICO
     destino = dados_chamada.get('guiche') or dados_chamada.get('servico')
-    audio_file = gerar_audio_chamada(dados_chamada['paciente'], destino, unidade_id)
-    dados_chamada['audio_file'] = audio_file 
+    
+    texto_local = destino.replace('CONSULTÓRIO ', 'Consultório ')
+    texto_local = texto_local.replace('SERVIÇO ', 'Serviço ')
+    frase_completa = f"Chamando {dados_chamada['paciente']}. Por favor, dirija-se a {texto_local}."
+    dados_chamada['frase_audio'] = frase_completa 
     
     # 3. Atualiza e salva o histórico
     historico.insert(0, dados_chamada)
@@ -114,20 +81,38 @@ def receber_nova_chamada():
     
     save_historico(unidade_id, historico)
     
-    return jsonify({"status": "sucesso", "mensagem": "Chamada registrada.", "audio_file": audio_file}), 200
-
+    return jsonify({"status": "sucesso", "mensagem": "Chamada registrada.", "frase_audio": frase_completa}), 200
 
 # ----------------------------------------------------
-# ROTA DE SERVIÇO DE ÁUDIO
+# NOVA ROTA: Geração de Áudio em Memória (GET)
 # ----------------------------------------------------
-@app.route('/audio/<filename>', methods=['GET'])
-def servir_audio(filename):
-    """Permite que o frontend acesse os arquivos MP3 gerados."""
+@app.route('/gerar_audio', methods=['GET'])
+def gerar_audio_em_memoria():
+    """Recebe o texto via query string, gera o MP3 na memória e o retorna."""
+    texto = request.args.get('texto')
+    if not texto:
+        # Se o texto estiver vazio, retorna um MP3 mudo (usado no loop de desbloqueio)
+        texto = '...' 
+
     try:
-        # Retorna o arquivo MP3 do diretório de cache
-        return send_from_directory(AUDIO_DIR, filename, as_attachment=False)
-    except FileNotFoundError:
-        return jsonify({"status": "erro", "mensagem": "Arquivo de áudio não encontrado."}), 404
+        # Gera o MP3 na memória
+        tts = gTTS(text=texto, lang='pt', slow=False)
+        mp3_fp = io.BytesIO()
+        tts.write_to_fp(mp3_fp)
+        mp3_fp.seek(0) # Volta ao início do arquivo
+        
+        # Retorna o arquivo de áudio diretamente da memória
+        return send_file(
+            mp3_fp, 
+            mimetype='audio/mp3', 
+            as_attachment=False, 
+            download_name='chamada.mp3'
+        )
+
+    except Exception as e:
+        print(f"ERRO Crítico na geração de áudio: {e}")
+        return jsonify({"erro": "Falha ao gerar o áudio no servidor."}), 500
+
 
 # Rota para o Painel RECEBER o histórico (GET)
 @app.route('/historico/<unidade_id>', methods=['GET'])
