@@ -13,6 +13,7 @@
 
         const UNIDADE_ID = getUnidadeIDFromURL();
         
+        // LINHA CORRIGIDA: SEGURA DENTRO DO DOMContentLoaded
         document.getElementById('unidade-nome').textContent = `PAINEL DE CHAMADAS | UNIDADE: ${UNIDADE_ID.replace(/_/g, ' ').toUpperCase()}`;
 
         // --- FUNÇÃO DE REPRODUÇÃO FINAL (Voz Robusta Garantida) ---
@@ -23,9 +24,9 @@
             const urlAudio = `${URL_API_BASE}/gerar_audio?texto=${encodeURIComponent(frase_audio)}`;
             const audio = new Audio(urlAudio);
 
-            // Apenas toca o áudio. Esperamos que a permissão da TV funcione.
+            // Tenta tocar o áudio imediatamente (funciona se a TV tiver permissão)
             audio.play().catch(e => {
-                console.error("ERRO CRÍTICO DE REPRODUÇÃO: O áudio da TV falhou no play(). Verifique o volume ou o formato do MP3:", e);
+                console.error("ERRO CRÍTICO DE REPRODUÇÃO: O áudio da TV falhou no play().", e);
                 // Tenta reproduzir novamente após um breve atraso
                 setTimeout(() => audio.play().catch(e => console.error("Falha final ao reproduzir.")), 100);
             });
@@ -40,8 +41,8 @@
                 const data = await response.json();
                 const historico = data.historico || [];
 
-                // --- Se não houver chamadas, exibe a mensagem de espera ---
                 if (historico.length === 0) {
+                    // [Lógica de lista vazia]
                     document.getElementById('chamada-atual').classList.add('chamada-vazia');
                     document.getElementById('msg-aguardando').style.display = 'block';
                     document.getElementById('paciente-atual').style.display = 'none';
@@ -59,7 +60,6 @@
                 const local = chamadaAtual.guiche || chamadaAtual.servico || 'Local Desconhecido';
                 const frase_audio = chamadaAtual.frase_audio; // Frase completa (nome do paciente + destino)
 
-                // ID para controle de repetição
                 const idChamada = chamadaAtual.hora + frase_audio; 
 
                 document.getElementById('paciente-atual').textContent = paciente.toUpperCase();
@@ -74,7 +74,7 @@
                     ultimaChamadaFalada = idChamada; 
                 }
                 
-                // --- 2. Renderiza o Histórico (Sem Alteração) ---
+                // --- 2. Renderiza o Histórico (Omitido por brevidade) ---
                 const listaHistorico = document.getElementById('lista-historico');
                 listaHistorico.innerHTML = ''; 
 
