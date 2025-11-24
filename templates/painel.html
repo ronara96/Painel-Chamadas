@@ -1,194 +1,7 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Chamadas - Unificado</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
-    
-    <style>
-        /* Variáveis CSS baseadas no layout azul/verde */
-        :root {
-            --cor-azul-principal: #174776;    /* Azul Escuro Profissional */
-            --cor-verde-destaque: #28a745; /* Verde Destaque (Guichê) */
-            --cor-fundo-claro: #F0F4F8; /* Fundo Geral Gelo */
-            --cor-texto-principal: #333333;
-            --cor-texto-claro: #FFFFFF;
-            --cor-sombra: 0 8px 20px rgba(0, 0, 0, 0.2);
-            --tempo-animacao: 0.5s;
-            font-size: 16px; /* Define o tamanho base da fonte */
-        }
+<script>
+        // REMOVIDAS: A função 'falar' e as variáveis 'audioEmCurso' e 'window.speechSynthesis'
 
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: var(--cor-fundo-claro);
-            color: var(--cor-texto-principal);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            box-sizing: border-box; 
-        }
-
-        .container {
-            display: flex;
-            width: 95%; 
-            max-width: 1600px; 
-            gap: 20px;
-        }
-
-        /* --- SEÇÃO PRINCIPAL (2/3) --- */
-        .secao-principal {
-            flex: 2; 
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .titulo-painel {
-            text-align: center;
-            padding: 15px 0;
-            background-color: #fff;
-            border-radius: 15px;
-            box-shadow: var(--cor-sombra);
-        }
-
-        .titulo-painel h1 {
-            font-size: max(1.8rem, 2.5vw); 
-            color: var(--cor-azul-principal);
-            margin: 0;
-            font-weight: 900;
-        }
-        
-        .chamada-atual {
-            background-color: var(--cor-azul-principal);
-            color: var(--cor-texto-claro);
-            padding: 50px;
-            border-radius: 15px;
-            box-shadow: var(--cor-sombra);
-            text-align: center;
-            min-height: 500px; 
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .chamada-atual #paciente-atual {
-            font-size: max(3.5rem, 5vw); 
-            font-weight: 900;
-            margin-bottom: 20px;
-            line-height: 1.1;
-        }
-
-        .chamada-atual #msg-aguardando {
-            font-size: max(4rem, 6vw); 
-            font-weight: 900;
-        }
-        
-        .local-destino {
-            background-color: var(--cor-verde-destaque);
-            color: var(--cor-texto-claro);
-            padding: 20px 40px;
-            border-radius: 10px;
-            font-size: max(3rem, 5vw); 
-            font-weight: 900;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            margin-top: 10px;
-        }
-
-        .chamada-vazia p {
-            color: rgba(255, 255, 255, 0.8) !important;
-        }
-        
-        .chamada-vazia .local-destino {
-             background-color: #555;
-        }
-        
-        /* --- SEÇÃO HISTÓRICO (1/3) --- */
-        .secao-historico {
-            flex: 1; 
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: var(--cor-sombra);
-        }
-
-        .secao-historico h3 {
-            font-size: 1.8rem;
-            color: var(--cor-texto-principal);
-            border-bottom: 3px solid var(--cor-azul-principal);
-            padding-bottom: 10px;
-            margin-top: 0;
-            font-weight: 700;
-        }
-
-        #lista-historico {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .chamado-historico {
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            padding: 15px;
-            background-color: #f2f2f2;
-        }
-
-        .historico-sala {
-            font-size: 1.2rem;
-            color: var(--cor-verde-destaque);
-            font-weight: 700;
-            display: block;
-        }
-
-        .historico-paciente {
-            font-size: 1.6rem; 
-            color: var(--cor-texto-principal);
-            font-weight: 900;
-            display: block;
-        }
-        
-        .lista-vazia {
-            font-style: italic;
-            color: #999;
-            text-align: center;
-            padding: 30px;
-            font-size: 1.2rem;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        
-        <div class="secao-principal">
-            <div class="titulo-painel">
-                <h1 id="unidade-nome">PAINEL DE CHAMADAS | CARREGANDO UNIDADE...</h1>
-            </div>
-
-            <div id="chamada-atual" class="chamada-atual">
-                <p id="msg-aguardando">AGUARDANDO PRÓXIMA CHAMADA</p>
-                <p id="paciente-atual" style="display: none;"></p>
-                <div id="local-atual" class="local-destino" style="display: none;"></div>
-            </div>
-        </div>
-
-        <div class="secao-historico">
-            <h3>ÚLTIMOS CHAMADOS</h3>
-            <ul id="lista-historico">
-                <li class="lista-vazia">Aguardando primeira chamada...</li>
-            </ul>
-        </div>
-    </div>
-
-    <script>
-        // --- VARIÁVEL GLOBAL PARA O TTS ---
-        let ultimaChamadaFalada = '';
-        const audioEmCurso = window.speechSynthesis;
+        let ultimaChamadaFalada = ''; 
 
         // 🚨 CONFIGURAÇÃO FINAL! Sua URL pública da API:
         const URL_API_BASE = 'https://painel-chamadas.onrender.com'; // Sua URL do Render
@@ -202,43 +15,24 @@
         
         document.getElementById('unidade-nome').textContent = `PAINEL DE CHAMADAS | UNIDADE: ${UNIDADE_ID.replace(/_/g, ' ').toUpperCase()}`;
 
-        // Função de Text-to-Speech (TTS) - VERSÃO 2.0 (Com Seletor de Voz)
-        function falar(texto, local) {
-            if (audioEmCurso.speaking) {
-                audioEmCurso.cancel();
+        // --- NOVA FUNÇÃO: Reproduzir Áudio do Servidor ---
+        function reproduzirAudio(audio_file) {
+            if (!audio_file) {
+                console.error("Nome do arquivo de áudio ausente.");
+                return;
             }
             
-            const msg = new SpeechSynthesisUtterance();
-            let textoLocal = local.toUpperCase().includes('CONSULTÓRIO') ? local.replace('CONSULTÓRIO ', 'Consultório ') : local;
+            // Constrói a URL completa para o MP3 no seu servidor Render
+            const urlAudio = `${URL_API_BASE}/audio/${audio_file}`;
             
-            msg.text = `Chamando ${texto}. Por favor, dirija-se a ${textoLocal}.`;
-            msg.lang = 'pt-BR';
+            // Cria um novo elemento de áudio e reproduz
+            const audio = new Audio(urlAudio);
 
-            const vozes = audioEmCurso.getVoices(); 
-            let vozSelecionada = vozes.find(voz => 
-                voz.lang.startsWith('pt-BR') && 
-                (voz.name.includes('Google') || voz.name.includes('Microsoft')) &&
-                (voz.name.includes('Male') || voz.name.includes('Masculino'))
-            );
-
-            if (!vozSelecionada) {
-                vozSelecionada = vozes.find(voz => 
-                    voz.lang.startsWith('pt-BR') && 
-                    (voz.name.includes('Google') || voz.name.includes('Microsoft'))
-                );
-            }
-
-            if (vozSelecionada) {
-                msg.voice = vozSelecionada;
-                console.log("Voz selecionada:", vozSelecionada.name);
-            } else {
-                console.log("Voz masculina/fluida não encontrada, usando padrão pt-BR.");
-            }
-
-            msg.rate = 1;  
-            msg.pitch = 1; 
-            
-            audioEmCurso.speak(msg);
+            audio.play().catch(e => {
+                console.error("Erro ao reproduzir áudio (Pode ser bloqueio de autoplay):", e);
+                // Tenta reproduzir novamente após um breve atraso
+                setTimeout(() => audio.play().catch(e => console.error("Falha final ao reproduzir áudio.")), 500);
+            });
         }
 
         // Função para atualizar o painel com os dados da API
@@ -251,6 +45,7 @@
                 const historico = data.historico || [];
 
                 if (historico.length === 0) {
+                    // ... (Lógica de lista vazia) ...
                     document.getElementById('chamada-atual').classList.add('chamada-vazia');
                     document.getElementById('msg-aguardando').style.display = 'block';
                     document.getElementById('paciente-atual').style.display = 'none';
@@ -266,12 +61,10 @@
                 const chamadaAtual = historico[0];
                 const paciente = chamadaAtual.paciente || 'Paciente';
                 const local = chamadaAtual.guiche || chamadaAtual.servico || 'Local Desconhecido';
+                const audio_file = chamadaAtual.audio_file; // <<< NOVO: Pega o nome do MP3
 
-                // ======================================================================
-                // 🚨 CORREÇÃO 2: ID ÚNICO MELHORADO
-                // O ID agora inclui o 'local' para diferenciar chamadas do mesmo paciente
-                // ======================================================================
-                const idChamada = chamadaAtual.hora + paciente + local; 
+                // O ID agora inclui o 'audio_file' para garantir unicidade
+                const idChamada = chamadaAtual.hora + paciente + local + audio_file; 
 
                 document.getElementById('paciente-atual').textContent = paciente.toUpperCase();
                 document.getElementById('local-atual').textContent = local.toUpperCase();
@@ -280,25 +73,20 @@
                 document.getElementById('local-atual').style.display = 'block';
 
                 
-                // 🚨 CONTROLE DE ÁUDIO (TTS)
-                if (idChamada !== ultimaChamadaFalada) {
-                    falar(paciente, local);
+                // 🚨 CONTROLE DE ÁUDIO (REPRODUÇÃO MP3)
+                if (idChamada !== ultimaChamadaFalada && audio_file) {
+                    reproduzirAudio(audio_file); // Chama a função que reproduz o MP3 do Render
                     ultimaChamadaFalada = idChamada; // Atualiza o último ID falado
                 }
 
 
-                // --- 2. Renderiza o Histórico ---
+                // --- 2. Renderiza o Histórico (Sem Alteração) ---
                 const listaHistorico = document.getElementById('lista-historico');
                 listaHistorico.innerHTML = ''; 
 
                 const chamadosAnteriores = historico.slice(1); 
 
                 if (chamadosAnteriores.length > 0) {
-                    
-                    // ======================================================================
-                    // 🚨 CORREÇÃO 1: MOSTRAR 3 ÚLTIMOS
-                    // Alterado de slice(0, 2) para slice(0, 3)
-                    // ======================================================================
                     const historicoVisivel = chamadosAnteriores.slice(0, 3); 
                     
                     historicoVisivel.forEach(chamado => {
