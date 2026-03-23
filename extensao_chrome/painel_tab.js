@@ -1,6 +1,6 @@
 // painel_tab.js - LÓGICA DA NOVA ABA (VERSÃO 5.0: Com Histórico + Sem Fechamento)
 
-const API_URL_BASE = 'https://painel-chamadas.onrender.com'; 
+const API_URL_BASE = 'https://ronarasilva.pythonanywhere.com'; 
 
 let dadosChamada = null; // Armazenará apenas o paciente ATUAL
 const statusMessage = document.getElementById('status-message');
